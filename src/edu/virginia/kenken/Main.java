@@ -1,4 +1,4 @@
-package edu.virginia.ken;
+package edu.virginia.kenken;
 
 public class Main {
 
