@@ -1,12 +1,15 @@
 package edu.virginia.kenken;
 
-public class Main {
+
+public class Driver {
 
   /**
    * @param args
    */
   public static void main(String[] args) {
-    new Problem(9);
+    GUI gui = new GUI();
+    gui.loop();
+    gui.destroy();
   }
 
 }
