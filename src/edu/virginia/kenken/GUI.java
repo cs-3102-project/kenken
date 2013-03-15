@@ -11,12 +11,15 @@ import org.lwjgl.opengl.DisplayMode;
 
 public class GUI {
 
-  private final int hOffset = 50;
-  private final int vOffset = 100;
+  private static final int H_OFFSET      = 15;
+  private static final int V_OFFSET      = 15;
+  private static final int WINDOW_WIDTH  = 640;
+  private static final int WINDOW_HEIGHT = 480;
+
+  private final Random     rand          = new Random();
 
   public GUI() {
     init();
-    drawProblem(new Problem(9)); // TODO Call this from a  GUI event instead
   }
 
   /**
@@ -24,7 +27,7 @@ public class GUI {
    */
   private void init() {
     try {
-      Display.setDisplayMode(new DisplayMode(640, 480));
+      Display.setDisplayMode(new DisplayMode(WINDOW_WIDTH, WINDOW_HEIGHT));
       Display.setTitle("KenKen");
       Display.create();
     } catch (LWJGLException e) {
@@ -34,7 +37,7 @@ public class GUI {
 
     glMatrixMode(GL_PROJECTION);
     glLoadIdentity(); // Resets any previous projection matrices
-    glOrtho(0, 640, 640, 0, 1, -1);
+    glOrtho(0, WINDOW_WIDTH, WINDOW_HEIGHT, 0, 1, -1);
     glMatrixMode(GL_MODELVIEW);
     glEnable(GL_COLOR_MATERIAL);
 
@@ -44,12 +47,16 @@ public class GUI {
 
     // increase line thickness
     glLineWidth(2.0f);
+
+    System.out.println("Window initialized.");
   }
 
   /**
    * Constantly refresh the window.
    */
   public void loop() {
+    System.out.println("Main loop starting.");
+
     while (!Display.isCloseRequested()) {
       Display.update();
       Display.sync(60);
@@ -72,11 +79,10 @@ public class GUI {
   public void drawProblem(Problem problem) {
 
     int size = problem.getSize();
+    int cellWidth = 450 / size;
 
     ArrayList<ArrayList<Boolean>> hWalls = new ArrayList<ArrayList<Boolean>>();
     ArrayList<ArrayList<Boolean>> vWalls = new ArrayList<ArrayList<Boolean>>();
-
-    Random rand = new Random();
 
     for (int i = 0; i < size; ++i) {
       hWalls.add(new ArrayList<Boolean>());
@@ -99,8 +105,8 @@ public class GUI {
           glColor3f(0.9f, 0.9f, 0.9f);
         }
         glBegin(GL_LINES);
-        glVertex2i(hOffset + j * 50, vOffset + 50 * i);
-        glVertex2i(hOffset + j * 50 + 50, vOffset + 50 * i);
+        glVertex2i(H_OFFSET + j * cellWidth, V_OFFSET + cellWidth * i);
+        glVertex2i(H_OFFSET + (j + 1) * cellWidth, V_OFFSET + cellWidth * i);
         glEnd();
       }
 
@@ -112,8 +118,8 @@ public class GUI {
           glColor3f(0.9f, 0.9f, 0.9f);
         }
         glBegin(GL_LINES);
-        glVertex2i(hOffset + j * 50, vOffset + 50 * i);
-        glVertex2i(hOffset + j * 50, vOffset + 50 + 50 * i);
+        glVertex2i(H_OFFSET + j * cellWidth, V_OFFSET + cellWidth * i);
+        glVertex2i(H_OFFSET + j * cellWidth, V_OFFSET + cellWidth * (i + 1));
         glEnd();
       }
     }
@@ -121,8 +127,8 @@ public class GUI {
     glColor3f(0.0f, 0.0f, 0.0f);
     for (int i = 0; i < size; ++i) {
       glBegin(GL_LINES);
-      glVertex2i(hOffset + i * 50, vOffset + 50 * size);
-      glVertex2i(hOffset + i * 50 + 50, vOffset + 50 * size);
+      glVertex2i(H_OFFSET + i * cellWidth, V_OFFSET + cellWidth * size);
+      glVertex2i(H_OFFSET + (i + 1) * cellWidth, V_OFFSET + cellWidth * size);
       glEnd();
     }
 
@@ -134,14 +140,14 @@ public class GUI {
       for (int j = 0; j < size; ++j) {
         if (hWalls.get(i).get(j)) {
           glBegin(GL_LINES);
-          glVertex2i(hOffset + j * 50, vOffset + 50 * i);
-          glVertex2i(hOffset + j * 50 + 50, vOffset + 50 * i);
+          glVertex2i(H_OFFSET + j * cellWidth, V_OFFSET + cellWidth * i);
+          glVertex2i(H_OFFSET + (j + 1) * cellWidth, V_OFFSET + cellWidth * i);
           glEnd();
         }
         if (vWalls.get(i).get(j)) {
           glBegin(GL_LINES);
-          glVertex2i(hOffset + j * 50, vOffset + 50 * i);
-          glVertex2i(hOffset + j * 50, vOffset + 50 + 50 * i);
+          glVertex2i(H_OFFSET + j * cellWidth, V_OFFSET + cellWidth * i);
+          glVertex2i(H_OFFSET + j * cellWidth, V_OFFSET + cellWidth * (i + 1));
           glEnd();
         }
       }
