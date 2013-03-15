@@ -36,16 +36,18 @@ public class GUI {
     }
 
     glMatrixMode(GL_PROJECTION);
-    glLoadIdentity(); // Resets any previous projection matrices
+    glLoadIdentity();
     glOrtho(0, WINDOW_WIDTH, WINDOW_HEIGHT, 0, 1, -1);
     glMatrixMode(GL_MODELVIEW);
     glEnable(GL_COLOR_MATERIAL);
 
-    // set the background color to white
+    // Set background color to white
+
     glClearColor(1.0f, 1.0f, 1.0f, 0.0f);
     glClear(GL_COLOR_BUFFER_BIT);
 
-    // increase line thickness
+    // Line thickness
+
     glLineWidth(2.0f);
 
     System.out.println("Window initialized.");
@@ -93,49 +95,28 @@ public class GUI {
       }
     }
 
-    // draw the start-up grid
+    // Draw grid guides
+
     glColor3f(0.9f, 0.9f, 0.9f);
 
-    for (int i = 0; i < size; ++i) {
-      // draw the horizontal lines
-      for (int j = 0; j < size; ++j) {
-        if (i == 0) {
-          glColor3f(0.0f, 0.0f, 0.0f);
-        } else {
-          glColor3f(0.9f, 0.9f, 0.9f);
-        }
-        glBegin(GL_LINES);
-        glVertex2i(H_OFFSET + j * cellWidth, V_OFFSET + cellWidth * i);
-        glVertex2i(H_OFFSET + (j + 1) * cellWidth, V_OFFSET + cellWidth * i);
-        glEnd();
-      }
-
-      // draw the vertical lines
-      for (int j = 0; j < size + 1; ++j) {
-        if (j == 0 || j == size) {
-          glColor3f(0.0f, 0.0f, 0.0f);
-        } else {
-          glColor3f(0.9f, 0.9f, 0.9f);
-        }
-        glBegin(GL_LINES);
-        glVertex2i(H_OFFSET + j * cellWidth, V_OFFSET + cellWidth * i);
-        glVertex2i(H_OFFSET + j * cellWidth, V_OFFSET + cellWidth * (i + 1));
-        glEnd();
-      }
-    }
-
-    glColor3f(0.0f, 0.0f, 0.0f);
-    for (int i = 0; i < size; ++i) {
+    for (int i = 1; i < size; ++i) {
+      // Horizontal lines
       glBegin(GL_LINES);
+      glVertex2i(H_OFFSET, V_OFFSET + cellWidth * i);
+      glVertex2i(H_OFFSET + size * cellWidth, V_OFFSET + cellWidth * i);
+      glEnd();
+
+      // Vertical lines
+      glBegin(GL_LINES);
+      glVertex2i(H_OFFSET + i * cellWidth, V_OFFSET);
       glVertex2i(H_OFFSET + i * cellWidth, V_OFFSET + cellWidth * size);
-      glVertex2i(H_OFFSET + (i + 1) * cellWidth, V_OFFSET + cellWidth * size);
       glEnd();
     }
 
-    // draw the cages
+    // Draw cell walls
+
     glColor3f(0.0f, 0.0f, 0.0f);
 
-    // draw hWalls/vWalls
     for (int i = 0; i < size; ++i) {
       for (int j = 0; j < size; ++j) {
         if (hWalls.get(i).get(j)) {
@@ -152,6 +133,28 @@ public class GUI {
         }
       }
     }
+
+    // Draw boundary
+
+    glBegin(GL_LINES); // Top
+    glVertex2i(H_OFFSET, V_OFFSET);
+    glVertex2i(H_OFFSET + size * cellWidth, V_OFFSET);
+    glEnd();
+
+    glBegin(GL_LINES); // Bottom
+    glVertex2i(H_OFFSET, V_OFFSET + cellWidth * size);
+    glVertex2i(H_OFFSET + size * cellWidth, V_OFFSET + cellWidth * size);
+    glEnd();
+
+    glBegin(GL_LINES); // Left
+    glVertex2i(H_OFFSET, V_OFFSET);
+    glVertex2i(H_OFFSET, V_OFFSET + cellWidth * size);
+    glEnd();
+
+    glBegin(GL_LINES); // Right
+    glVertex2i(H_OFFSET + size * cellWidth, V_OFFSET);
+    glVertex2i(H_OFFSET + size * cellWidth, V_OFFSET + cellWidth * size);
+    glEnd();
   }
 
 }
