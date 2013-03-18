@@ -6,10 +6,14 @@ import java.util.Random;
 
 public class Problem {
 
-  private final int size;
-  
+  private final int             size;
+  ArrayList<ArrayList<Boolean>> hWalls;
+  ArrayList<ArrayList<Boolean>> vWalls;
+
   // specifies number of double cell cages
-  private final int numDoubleBlocks = 20;
+  private final int             numDoubleBlocks = 20;
+
+  private final Random          rand            = new Random();
 
   public Problem(int size) {
     this.size = size;
@@ -52,76 +56,83 @@ public class Problem {
       }
       System.out.print("\n");
     }
-    
+
+    hWalls = new ArrayList<ArrayList<Boolean>>();
+    vWalls = new ArrayList<ArrayList<Boolean>>();
+
+    for (int i = 0; i < size; ++i) {
+      hWalls.add(new ArrayList<Boolean>());
+      vWalls.add(new ArrayList<Boolean>());
+      for (int j = 0; j < size; ++j) {
+        hWalls.get(i).add(rand.nextBoolean());
+        vWalls.get(i).add(rand.nextBoolean());
+      }
+    }
+
     // creation of cages (only two cell blocks)
     // TODO Fill in the rest of the board with legal cages (>2 cells each)
-    Random rand = new Random();
-    ArrayList<ArrayList<Integer>> grid = new ArrayList<ArrayList<Integer>>(size);
-    
+    ArrayList<ArrayList<Integer>> grid =
+      new ArrayList<ArrayList<Integer>>(size);
+
     // initialize the arrayList
-    for(int i = 0; i < size; ++i)
-    {
+    for (int i = 0; i < size; ++i) {
       grid.add(new ArrayList<Integer>(Collections.nCopies(size, 0)));
     }
-    
-    int blockCount = 1;   // keeps tracks of different cages in the grid
-    while (blockCount <= numDoubleBlocks)
-    {
-            
+
+    int blockCount = 1; // keeps tracks of different cages in the grid
+    while (blockCount <= numDoubleBlocks) {
+
       // random vertical or horizontal insertion
-      int currCell = rand.nextInt(size*size);
-      while(grid.get(currCell/size).get(currCell%size) != 0)
-      {
-        currCell = rand.nextInt(size*size);
+      int currCell = rand.nextInt(size * size);
+      while (grid.get(currCell / size).get(currCell % size) != 0) {
+        currCell = rand.nextInt(size * size);
       }
-      if(rand.nextBoolean()) {
-        while(currCell%size == 0)           // don't want left edge
+      if (rand.nextBoolean()) {
+        while (currCell % size == 0) // don't want left edge
         {
-          currCell = rand.nextInt(size*size);
+          currCell = rand.nextInt(size * size);
         }
-        if(grid.get(currCell/size).get(currCell%size - 1) == 0)
-        {
-          grid.get(currCell/size).set(currCell%size, blockCount);
-          grid.get(currCell/size).set(currCell%size - 1, blockCount);
+        if (grid.get(currCell / size).get(currCell % size - 1) == 0) {
+          grid.get(currCell / size).set(currCell % size, blockCount);
+          grid.get(currCell / size).set(currCell % size - 1, blockCount);
           ++blockCount;
-        }
-        else
-        {
+        } else {
           continue;
         }
-      }
-      else
-      {
-        while(currCell/size == size - 1)    // don't want bottom row
+      } else {
+        while (currCell / size == size - 1) // don't want bottom row
         {
-          currCell = rand.nextInt(size*size);
+          currCell = rand.nextInt(size * size);
         }
-        if(grid.get(currCell/size + 1).get(currCell%size) == 0)
-        {
-          grid.get(currCell/size).set(currCell%size, blockCount);
-          grid.get(currCell/size + 1).set(currCell%size, blockCount);
+        if (grid.get(currCell / size + 1).get(currCell % size) == 0) {
+          grid.get(currCell / size).set(currCell % size, blockCount);
+          grid.get(currCell / size + 1).set(currCell % size, blockCount);
           ++blockCount;
-        }
-        else
-        {
+        } else {
           continue;
         }
       }
     }
-    
+
     System.out.println("CAGES -- INCOMPLETE");
-    for(int i = 0; i < size; ++i)
-    {
-      for(int j = 0; j < size; ++j)
-      {
-        System.out.print(grid.get(i).get(j)+"\t");
+    for (int i = 0; i < size; ++i) {
+      for (int j = 0; j < size; ++j) {
+        System.out.print(grid.get(i).get(j) + "\t");
       }
       System.out.println();
     }
   }
-  
+
   public int getSize() {
     return size;
+  }
+
+  public ArrayList<ArrayList<Boolean>> getHorizontalWalls() {
+    return hWalls;
+  }
+
+  public ArrayList<ArrayList<Boolean>> getVerticalWalls() {
+    return vWalls;
   }
 
 }

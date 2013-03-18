@@ -3,7 +3,6 @@ package edu.virginia.kenken;
 import static org.lwjgl.opengl.GL11.*;
 
 import java.util.ArrayList;
-import java.util.Random;
 
 import org.lwjgl.LWJGLException;
 import org.lwjgl.opengl.Display;
@@ -15,8 +14,6 @@ public class GUI {
   private static final int V_OFFSET      = 15;
   private static final int WINDOW_WIDTH  = 640;
   private static final int WINDOW_HEIGHT = 480;
-
-  private final Random     rand          = new Random();
 
   public GUI() {
     init();
@@ -83,17 +80,8 @@ public class GUI {
     int size = problem.getSize();
     int cellWidth = 450 / size;
 
-    ArrayList<ArrayList<Boolean>> hWalls = new ArrayList<ArrayList<Boolean>>();
-    ArrayList<ArrayList<Boolean>> vWalls = new ArrayList<ArrayList<Boolean>>();
-
-    for (int i = 0; i < size; ++i) {
-      hWalls.add(new ArrayList<Boolean>());
-      vWalls.add(new ArrayList<Boolean>());
-      for (int j = 0; j < size; ++j) {
-        hWalls.get(i).add(rand.nextBoolean());
-        vWalls.get(i).add(rand.nextBoolean());
-      }
-    }
+    ArrayList<ArrayList<Boolean>> hWalls = problem.getHorizontalWalls();
+    ArrayList<ArrayList<Boolean>> vWalls = problem.getVerticalWalls();
 
     // Draw grid guides
 
