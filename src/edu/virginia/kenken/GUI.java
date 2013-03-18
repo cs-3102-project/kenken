@@ -80,9 +80,6 @@ public class GUI {
     int size = problem.getSize();
     int cellWidth = 450 / size;
 
-    ArrayList<ArrayList<Boolean>> hWalls = problem.getHorizontalWalls();
-    ArrayList<ArrayList<Boolean>> vWalls = problem.getVerticalWalls();
-
     // Draw grid guides
 
     glColor3f(0.9f, 0.9f, 0.9f);
@@ -105,19 +102,24 @@ public class GUI {
 
     glColor3f(0.0f, 0.0f, 0.0f);
 
+    int hID = 0;
+    int vID = 0;
+    ArrayList<ArrayList<Integer>> grid = problem.getGrid();
     for (int i = 0; i < size; ++i) {
       for (int j = 0; j < size; ++j) {
-        if (hWalls.get(i).get(j)) {
+        if (grid.get(j).get(i) != hID) {
           glBegin(GL_LINES);
-          glVertex2i(H_OFFSET + j * cellWidth, V_OFFSET + cellWidth * i);
-          glVertex2i(H_OFFSET + (j + 1) * cellWidth, V_OFFSET + cellWidth * i);
+          glVertex2i(H_OFFSET + i * cellWidth, V_OFFSET + cellWidth * j);
+          glVertex2i(H_OFFSET + (i + 1) * cellWidth, V_OFFSET + cellWidth * j);
           glEnd();
+          hID = grid.get(j).get(i);
         }
-        if (vWalls.get(i).get(j)) {
+        if (grid.get(i).get(j) != vID) {
           glBegin(GL_LINES);
           glVertex2i(H_OFFSET + j * cellWidth, V_OFFSET + cellWidth * i);
           glVertex2i(H_OFFSET + j * cellWidth, V_OFFSET + cellWidth * (i + 1));
           glEnd();
+          vID = grid.get(i).get(j);
         }
       }
     }

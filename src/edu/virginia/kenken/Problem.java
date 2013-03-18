@@ -10,10 +10,9 @@ public class Problem {
   ArrayList<ArrayList<Boolean>> hWalls;
   ArrayList<ArrayList<Boolean>> vWalls;
 
-  // specifies number of double cell cages
-  private final int             numDoubleBlocks = 20;
+  ArrayList<ArrayList<Integer>> grid;
 
-  private final Random          rand            = new Random();
+  private final Random          rand = new Random();
 
   public Problem(int size) {
     this.size = size;
@@ -57,82 +56,138 @@ public class Problem {
       System.out.print("\n");
     }
 
-    hWalls = new ArrayList<ArrayList<Boolean>>();
-    vWalls = new ArrayList<ArrayList<Boolean>>();
+    // Create cages
 
-    for (int i = 0; i < size; ++i) {
-      hWalls.add(new ArrayList<Boolean>());
-      vWalls.add(new ArrayList<Boolean>());
-      for (int j = 0; j < size; ++j) {
-        hWalls.get(i).add(rand.nextBoolean());
-        vWalls.get(i).add(rand.nextBoolean());
-      }
-    }
-
-    // creation of cages (only two cell blocks)
-    // TODO Fill in the rest of the board with legal cages (>2 cells each)
-    ArrayList<ArrayList<Integer>> grid =
-      new ArrayList<ArrayList<Integer>>(size);
+    grid = new ArrayList<ArrayList<Integer>>();
 
     // initialize the arrayList
     for (int i = 0; i < size; ++i) {
-      grid.add(new ArrayList<Integer>(Collections.nCopies(size, 0)));
+      grid.add(new ArrayList<Integer>(Collections.nCopies(size, -1)));
     }
 
-    int blockCount = 1; // keeps tracks of different cages in the grid
-    while (blockCount <= numDoubleBlocks) {
+    ArrayList<String> directions = new ArrayList<String>();
+    directions.add("N");
+    directions.add("E");
+    directions.add("S");
+    directions.add("W");
 
-      // random vertical or horizontal insertion
-      int currCell = rand.nextInt(size * size);
-      while (grid.get(currCell / size).get(currCell % size) != 0) {
-        currCell = rand.nextInt(size * size);
+    int curID = 0;
+    int curX = -1;
+    int curY = -1;
+    int nextX = -1;
+    int nextY = -1;
+
+    int cageSize;
+    int maxCageSize = -1;
+    float cutoff;
+
+    boolean boardFull;
+    boolean growable;
+
+    // TODO Remove all references to sizeDistribution (it's just for testing)
+    ArrayList<Integer> sizeDistribution = new ArrayList<Integer>();
+    sizeDistribution.add(0);
+    sizeDistribution.add(0);
+    sizeDistribution.add(0);
+    sizeDistribution.add(0);
+
+    while (true) {
+      // Select first available uncaged cell to be "root node" of new cage
+      boardFull = true;
+      for (int i = 0; i < size; ++i) {
+        for (int j = 0; j < size; ++j) {
+          if (grid.get(i).get(j) < 0) {
+            curX = j;
+            curY = i;
+            boardFull = false;
+            break;
+          }
+        }
+        if (!boardFull) {
+          break;
+        }
       }
-      if (rand.nextBoolean()) {
-        while (currCell % size == 0) // don't want left edge
-        {
-          currCell = rand.nextInt(size * size);
-        }
-        if (grid.get(currCell / size).get(currCell % size - 1) == 0) {
-          grid.get(currCell / size).set(currCell % size, blockCount);
-          grid.get(currCell / size).set(currCell % size - 1, blockCount);
-          ++blockCount;
-        } else {
-          continue;
-        }
+
+      // ...Unless all cells are caged already; then quit
+      if (boardFull) {
+        break;
+      }
+
+      // Predetermine the maximum number of cells this cage will contain,
+      // assuming nothing gets in the way of its growth
+      cutoff = rand.nextFloat();
+      if (cutoff < 0.05) {
+        maxCageSize = 1;
+      } else if (cutoff < 0.45) {
+        maxCageSize = 2;
+      } else if (cutoff < 0.80) {
+        maxCageSize = 3;
       } else {
-        while (currCell / size == size - 1) // don't want bottom row
-        {
-          currCell = rand.nextInt(size * size);
+        maxCageSize = 4;
+      }
+
+      // Add current cell to new cage
+      grid.get(curY).set(curX, curID);
+      cageSize = 1;
+
+      // Grow cage, cell by cell
+      while (true) {
+        growable = false;
+
+        // Randomly choose growth direction
+        Collections.shuffle(directions);
+        for (String s : directions) {
+          switch (s) {
+            case "N":
+              nextX = curX;
+              nextY = curY - 1;
+              break;
+            case "E":
+              nextX = curX + 1;
+              nextY = curY;
+              break;
+            case "S":
+              nextX = curX;
+              nextY = curY + 1;
+              break;
+            case "W":
+              nextX = curX - 1;
+              nextY = curY;
+              break;
+          }
+          if (nextX >= 0 && nextX < size && nextY >= 0 && nextY < size) {
+            if (grid.get(nextY).get(nextX) == -1) {
+              growable = true;
+              break;
+            }
+          }
         }
-        if (grid.get(currCell / size + 1).get(currCell % size) == 0) {
-          grid.get(currCell / size).set(currCell % size, blockCount);
-          grid.get(currCell / size + 1).set(currCell % size, blockCount);
-          ++blockCount;
+
+        // If next cell is valid, add it to cage
+        if (growable && cageSize < maxCageSize) {
+          grid.get(nextY).set(nextX, curID);
+          curX = nextX;
+          curY = nextY;
+          cageSize += 1;
         } else {
-          continue;
+          break;
         }
       }
+
+      sizeDistribution
+        .set(cageSize - 1, sizeDistribution.get(cageSize - 1) + 1);
+      curID += 1;
     }
 
-    System.out.println("CAGES -- INCOMPLETE");
-    for (int i = 0; i < size; ++i) {
-      for (int j = 0; j < size; ++j) {
-        System.out.print(grid.get(i).get(j) + "\t");
-      }
-      System.out.println();
-    }
+    System.out.println("Cage size distribution: " + sizeDistribution);
   }
 
   public int getSize() {
     return size;
   }
 
-  public ArrayList<ArrayList<Boolean>> getHorizontalWalls() {
-    return hWalls;
-  }
-
-  public ArrayList<ArrayList<Boolean>> getVerticalWalls() {
-    return vWalls;
+  public ArrayList<ArrayList<Integer>> getGrid() {
+    return grid;
   }
 
 }
