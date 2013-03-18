@@ -7,6 +7,9 @@ import java.util.ArrayList;
 import org.lwjgl.LWJGLException;
 import org.lwjgl.opengl.Display;
 import org.lwjgl.opengl.DisplayMode;
+import org.newdawn.slick.SlickException;
+import org.newdawn.slick.UnicodeFont;
+import org.newdawn.slick.font.effects.ColorEffect;
 
 public class GUI {
 
@@ -31,7 +34,13 @@ public class GUI {
       System.err.println("Display wasn't initialized correctly.");
       System.exit(1);
     }
-
+    
+    glEnable(GL_TEXTURE_2D);
+    glShadeModel(GL_SMOOTH);       
+    glDisable(GL_DEPTH_TEST);
+    glDisable(GL_LIGHTING);
+    glEnable(GL_BLEND);
+    glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
     glMatrixMode(GL_PROJECTION);
     glLoadIdentity();
     glOrtho(0, WINDOW_WIDTH, WINDOW_HEIGHT, 0, 1, -1);
@@ -148,6 +157,21 @@ public class GUI {
     glVertex2i(H_OFFSET + size * cellWidth, V_OFFSET);
     glVertex2i(H_OFFSET + size * cellWidth, V_OFFSET + cellWidth * size);
     glEnd();
+    
+    // Draw Hello World
+    
+    String fontPath = "res/DroidSans.ttf";
+    try {
+      // Specify the font size with the second parameter to the constructor
+      UnicodeFont uFont = new UnicodeFont(fontPath , 40, false, false);
+      uFont.addAsciiGlyphs();   // Add Glyphs
+      uFont.addGlyphs(400, 600); // Add Glyphs
+      uFont.getEffects().add(new ColorEffect(java.awt.Color.BLACK));
+      uFont.loadGlyphs();  // Load Glyphs
+      uFont.drawString(20.0f, 20.0f, "Hello World");
+    } catch (SlickException e) {
+      // TODO Auto-generated catch block
+      e.printStackTrace();
+    }
   }
-
 }
