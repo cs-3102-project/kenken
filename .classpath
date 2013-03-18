@@ -8,6 +8,6 @@
 			<attribute name="org.eclipse.jdt.launching.CLASSPATH_ATTR_LIBRARY_PATH_ENTRY" value="kenken/lib/natives-linux"/>
 		</attributes>
 	</classpathentry>
-	<classpathentry kind="lib" path="lib/jars/slick-util.jar"/>
+	<classpathentry kind="lib" path="lib/jars/slick.jar"/>
 	<classpathentry kind="output" path="bin"/>
 </classpath>
