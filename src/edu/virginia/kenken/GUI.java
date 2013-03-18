@@ -98,7 +98,10 @@ public class GUI {
       glEnd();
     }
 
-    // Draw cell walls
+    // Draw cell walls (note that when traversing the grid in either the
+    // left-to-right or top-to-bottom direction, a wall needs to be placed if
+    // and only if the current cell belongs to a different cage from the
+    // previous cell)
 
     glColor3f(0.0f, 0.0f, 0.0f);
 

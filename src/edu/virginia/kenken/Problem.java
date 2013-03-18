@@ -56,11 +56,9 @@ public class Problem {
       System.out.print("\n");
     }
 
-    // Create cages
+    // Initialize grid
 
     grid = new ArrayList<ArrayList<Integer>>();
-
-    // initialize the arrayList
     for (int i = 0; i < size; ++i) {
       grid.add(new ArrayList<Integer>(Collections.nCopies(size, -1)));
     }
@@ -91,6 +89,7 @@ public class Problem {
     sizeDistribution.add(0);
     sizeDistribution.add(0);
 
+    // Each iteration generates a new cage
     while (true) {
       // Select first available uncaged cell to be "root node" of new cage
       boardFull = true;
@@ -163,7 +162,7 @@ public class Problem {
           }
         }
 
-        // If next cell is valid, add it to cage
+        // If next cell is valid, add it to cage and move to it
         if (growable && cageSize < maxCageSize) {
           grid.get(nextY).set(nextX, curID);
           curX = nextX;
