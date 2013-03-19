@@ -9,12 +9,15 @@ public class Problem {
   private final int                           size;
   private final ArrayList<ArrayList<Integer>> grid;
   private int                                 numCages;
+  private final ArrayList<Cage>               cages;
 
   private final Random                        rand;
 
   public Problem(int size) {
     this.size = size;
+    grid = new ArrayList<ArrayList<Integer>>();
     numCages = 0;
+    cages = new ArrayList<Cage>();
     rand = new Random();
 
     ArrayList<ArrayList<Integer>> cells = new ArrayList<ArrayList<Integer>>();
@@ -58,7 +61,6 @@ public class Problem {
 
     // Initialize grid
 
-    grid = new ArrayList<ArrayList<Integer>>();
     for (int i = 0; i < size; ++i) {
       grid.add(new ArrayList<Integer>(Collections.nCopies(size, -1)));
     }
