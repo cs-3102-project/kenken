@@ -16,19 +16,20 @@ import org.newdawn.slick.font.effects.ColorEffect;
 
 public class GUI {
 
-  private static final int H_OFFSET         = 15;
-  private static final int V_OFFSET         = 15;
-  private static final int WINDOW_WIDTH     = 640;
-  private static final int WINDOW_HEIGHT    = 480;
-  private static final int OPERATION_OFFSET = 5;
-  private static final int NUMBER_OFFSET_X  = 17;
-  private static final int NUMBER_OFFSET_Y  = 10;
-  private int size;
-  private int cellWidth;
-  private static String fontPath = "res/DroidSans.ttf";
-  private static UnicodeFont cageOperation  = null;
-  private static UnicodeFont input          = null; 
-  private static ArrayList<Boolean> cageProcessed;
+  private static final int   H_OFFSET         = 15;
+  private static final int   V_OFFSET         = 15;
+  private static final int   WINDOW_WIDTH     = 640;
+  private static final int   WINDOW_HEIGHT    = 480;
+  private static final int   OPERATION_OFFSET = 5;
+  private static final int   NUMBER_OFFSET_X  = 17;
+  private static final int   NUMBER_OFFSET_Y  = 10;
+
+  private int                size;
+  private int                cellWidth;
+  private final String       fontPath         = "res/DroidSans.ttf";
+  private UnicodeFont        cageOperation    = null;
+  private UnicodeFont        input            = null;
+  private ArrayList<Boolean> cageProcessed;
 
   public GUI() {
     init();
@@ -46,9 +47,9 @@ public class GUI {
       System.err.println("Display wasn't initialized correctly.");
       System.exit(1);
     }
-    
+
     glEnable(GL_TEXTURE_2D);
-    glShadeModel(GL_SMOOTH);       
+    glShadeModel(GL_SMOOTH);
     glDisable(GL_DEPTH_TEST);
     glDisable(GL_LIGHTING);
     glEnable(GL_BLEND);
@@ -170,51 +171,46 @@ public class GUI {
     glVertex2i(H_OFFSET + size * cellWidth, V_OFFSET);
     glVertex2i(H_OFFSET + size * cellWidth, V_OFFSET + cellWidth * size);
     glEnd();
-    
-    // Draw cage operations
-    
-    cageProcessed = new ArrayList<Boolean>(Collections.nCopies(problem
-      .getCurID(), false));
-    
+
+    // Draw cage clues
+
+    cageProcessed =
+      new ArrayList<Boolean>(Collections.nCopies(problem.getCurID(), false));
+
     try {
       // Specify the font size with the second parameter to the constructor
-      cageOperation = new UnicodeFont(fontPath , 12, false, false);
-      cageOperation.addAsciiGlyphs();   // Add Glyphs
+      cageOperation = new UnicodeFont(fontPath, 12, false, false);
+      cageOperation.addAsciiGlyphs(); // Add Glyphs
       cageOperation.addGlyphs(400, 600); // Add Glyphs
       cageOperation.getEffects().add(new ColorEffect(java.awt.Color.BLACK));
-      cageOperation.loadGlyphs();  // Load Glyphs
-      
-      input = new UnicodeFont(fontPath , 25, false, false);
-      input.addAsciiGlyphs();   // Add Glyphs
+      cageOperation.loadGlyphs(); // Load Glyphs
+
+      input = new UnicodeFont(fontPath, 25, false, false);
+      input.addAsciiGlyphs(); // Add Glyphs
       input.addGlyphs(400, 600); // Add Glyphs
       input.getEffects().add(new ColorEffect(java.awt.Color.BLACK));
-      input.loadGlyphs();  // Load Glyphs
-
-      
+      input.loadGlyphs(); // Load Glyphs
     } catch (SlickException e) {
       System.out.println("FAILED TO CREATE FONT!! EXITING...");
-      System.exit(1);
       e.printStackTrace();
+      System.exit(1);
     }
-    
+
     // Traverse through grid; if we find a number that we have not seen before,
     // then write the operation on the corresponding cell
     // note: there are curID cages, from 0 to curID - 1
-    for(int i = 0; i < size; ++i)
-    {
-      for(int j = 0; j < size; ++j)
-      {
-        if(cageProcessed.get(grid.get(i).get(j)) == false)
-        {
+    for (int i = 0; i < size; ++i) {
+      for (int j = 0; j < size; ++j) {
+        if (cageProcessed.get(grid.get(i).get(j)) == false) {
           cageOperation.drawString(H_OFFSET + OPERATION_OFFSET + cellWidth * j,
             V_OFFSET + OPERATION_OFFSET + cellWidth * i, "Hi");
-          cageProcessed.set(grid.get(i).get(j), true); 
+          cageProcessed.set(grid.get(i).get(j), true);
         }
       }
     }
   }
-  
-  //Note: Mouse origin starts at the bottom left of the display, not top left
+
+  // Note: Mouse origin starts at the bottom left of the display, not top left
   // TODO find out why, for some funky reason, there is lag on the boundary we
   // draw on
   // TODO replace GL_QUADS with GL_TRIANGLEs since the former is being
@@ -224,37 +220,27 @@ public class GUI {
   // TODO undraw quad when mouse moves away
   // TODO clear the previous number when a new one has been entered by the user
   private void pollInput() {
-    int originX = (Mouse.getX()/cellWidth) * cellWidth + H_OFFSET;
-    int originY = ((WINDOW_HEIGHT - Mouse.getY())/cellWidth) * cellWidth
-      + V_OFFSET;
-    if(Mouse.getX() > H_OFFSET && Mouse.getY() > V_OFFSET &&
-      Mouse.getX() < H_OFFSET + cellWidth*(size) &&
-      Mouse.getY() < V_OFFSET + cellWidth*(size))
-    {
+    int originX = (Mouse.getX() / cellWidth) * cellWidth + H_OFFSET;
+    int originY =
+      ((WINDOW_HEIGHT - Mouse.getY()) / cellWidth) * cellWidth + V_OFFSET;
+    if (Mouse.getX() > H_OFFSET && Mouse.getY() > V_OFFSET
+      && Mouse.getX() < H_OFFSET + cellWidth * (size)
+      && Mouse.getY() < V_OFFSET + cellWidth * (size)) {
       glColor3f(0.8f, 0.0f, 0.0f);
       glBegin(GL_QUADS);
       glVertex2f(originX, originY);
       glVertex2f(originX + cellWidth, originY);
       glVertex2f(originX + cellWidth, originY + cellWidth);
       glVertex2f(originX, originY + cellWidth);
-      glEnd();        
+      glEnd();
     }
-    
-    while(Keyboard.next())
-    {
-      int charCode =  Keyboard.getEventKey();
-      if(charCode <= 11) 
-      {
-        if(charCode  == 11)
-        {
-          charCode = 0;
-        }
-        else
-        {
-          --charCode;
-        }
+
+    int charCode;
+    while (Keyboard.next()) {
+      charCode = Keyboard.getEventKey();
+      if (charCode <= 11) {
         input.drawString(originX + NUMBER_OFFSET_X, originY + NUMBER_OFFSET_Y,
-          Integer.toString(charCode));
+          Integer.toString((charCode - 1) % 10));
       }
     }
   }
