@@ -6,6 +6,8 @@ import java.util.ArrayList;
 import java.util.Collections;
 
 import org.lwjgl.LWJGLException;
+import org.lwjgl.input.Keyboard;
+import org.lwjgl.input.Mouse;
 import org.lwjgl.opengl.Display;
 import org.lwjgl.opengl.DisplayMode;
 import org.newdawn.slick.SlickException;
@@ -19,8 +21,13 @@ public class GUI {
   private static final int WINDOW_WIDTH     = 640;
   private static final int WINDOW_HEIGHT    = 480;
   private static final int OPERATION_OFFSET = 5;
+  private static final int NUMBER_OFFSET_X  = 17;
+  private static final int NUMBER_OFFSET_Y  = 10;
+  private int size;
+  private int cellWidth;
   private static String fontPath = "res/DroidSans.ttf";
-  private static UnicodeFont cageOperation = null;
+  private static UnicodeFont cageOperation  = null;
+  private static UnicodeFont input          = null; 
   private static ArrayList<Boolean> cageProcessed;
 
   public GUI() {
@@ -71,6 +78,7 @@ public class GUI {
     System.out.println("Main loop starting.");
 
     while (!Display.isCloseRequested()) {
+      pollInput();
       Display.update();
       Display.sync(60);
     }
@@ -91,8 +99,8 @@ public class GUI {
    */
   public void drawProblem(Problem problem) {
 
-    int size = problem.getSize();
-    int cellWidth = 450 / size;
+    this.size = problem.getSize();
+    this.cellWidth = 450 / size;
 
     // Draw grid guides
 
@@ -164,6 +172,7 @@ public class GUI {
     glEnd();
     
     // Draw cage operations
+    
     cageProcessed = new ArrayList<Boolean>(Collections.nCopies(problem
       .getCurID(), false));
     
@@ -175,8 +184,14 @@ public class GUI {
       cageOperation.getEffects().add(new ColorEffect(java.awt.Color.BLACK));
       cageOperation.loadGlyphs();  // Load Glyphs
       
+      input = new UnicodeFont(fontPath , 25, false, false);
+      input.addAsciiGlyphs();   // Add Glyphs
+      input.addGlyphs(400, 600); // Add Glyphs
+      input.getEffects().add(new ColorEffect(java.awt.Color.BLACK));
+      input.loadGlyphs();  // Load Glyphs
+
+      
     } catch (SlickException e) {
-      // TODO Auto-generated catch block
       System.out.println("FAILED TO CREATE FONT!! EXITING...");
       System.exit(1);
       e.printStackTrace();
@@ -196,6 +211,51 @@ public class GUI {
           cageProcessed.set(grid.get(i).get(j), true); 
         }
       }
-    }    
+    }
+  }
+  
+  //Note: Mouse origin starts at the bottom left of the display, not top left
+  // TODO find out why, for some funky reason, there is lag on the boundary we
+  // draw on
+  // TODO replace GL_QUADS with GL_TRIANGLEs since the former is being
+  // deprecated in OpenGL 3
+  // TODO change the color; for some reason, this cannot be done despite the
+  // call to glColor3f...
+  // TODO undraw quad when mouse moves away
+  // TODO clear the previous number when a new one has been entered by the user
+  private void pollInput() {
+    int originX = (Mouse.getX()/cellWidth) * cellWidth + H_OFFSET;
+    int originY = ((WINDOW_HEIGHT - Mouse.getY())/cellWidth) * cellWidth
+      + V_OFFSET;
+    if(Mouse.getX() > H_OFFSET && Mouse.getY() > V_OFFSET &&
+      Mouse.getX() < H_OFFSET + cellWidth*(size) &&
+      Mouse.getY() < V_OFFSET + cellWidth*(size))
+    {
+      glColor3f(0.8f, 0.0f, 0.0f);
+      glBegin(GL_QUADS);
+      glVertex2f(originX, originY);
+      glVertex2f(originX + cellWidth, originY);
+      glVertex2f(originX + cellWidth, originY + cellWidth);
+      glVertex2f(originX, originY + cellWidth);
+      glEnd();        
+    }
+    
+    while(Keyboard.next())
+    {
+      int charCode =  Keyboard.getEventKey();
+      if(charCode <= 11) 
+      {
+        if(charCode  == 11)
+        {
+          charCode = 0;
+        }
+        else
+        {
+          --charCode;
+        }
+        input.drawString(originX + NUMBER_OFFSET_X, originY + NUMBER_OFFSET_Y,
+          Integer.toString(charCode));
+      }
+    }
   }
 }
