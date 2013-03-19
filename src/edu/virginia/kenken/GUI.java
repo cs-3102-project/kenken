@@ -23,16 +23,26 @@ public class GUI {
   private static final int    OPERATION_OFFSET = 5;
   private static final int    NUMBER_OFFSET_X  = 17;
   private static final int    NUMBER_OFFSET_Y  = 10;
+  private static final int    CLUE_FONT_SIZE   = 12;
+  private static final int    ENTRY_FONT_SIZE  = 25;
   private static final String FONT_PATH        = "res/DroidSans.ttf";
 
+  private Problem             problem;
   private int                 size;
   private int                 cellWidth;
-  private UnicodeFont         cageOperation    = null;
-  private UnicodeFont         input            = null;
+  private UnicodeFont         cageOperation;
+  private UnicodeFont         input;
   private ArrayList<Boolean>  cageProcessed;
 
-  public GUI() {
+  public GUI(Problem problem) {
+    setProblem(problem);
     init();
+  }
+
+  private void setProblem(Problem problem) {
+    this.problem = problem;
+    this.size = problem.getSize();
+    this.cellWidth = 450 / size;
   }
 
   /**
@@ -98,11 +108,7 @@ public class GUI {
    * 
    * @param problem The problem instance
    */
-  public void drawProblem(Problem problem) {
-
-    this.size = problem.getSize();
-    this.cellWidth = 450 / size;
-
+  public void drawProblem() {
     // Draw grid guides
 
     glColor3f(0.9f, 0.9f, 0.9f);
@@ -178,20 +184,19 @@ public class GUI {
       new ArrayList<Boolean>(Collections.nCopies(problem.getNumCages(), false));
 
     try {
-      // Specify the font size with the second parameter to the constructor
-      cageOperation = new UnicodeFont(FONT_PATH, 12, false, false);
-      cageOperation.addAsciiGlyphs(); // Add Glyphs
-      cageOperation.addGlyphs(400, 600); // Add Glyphs
+      cageOperation = new UnicodeFont(FONT_PATH, CLUE_FONT_SIZE, false, false);
+      cageOperation.addAsciiGlyphs();
+      cageOperation.addGlyphs(400, 600);
       cageOperation.getEffects().add(new ColorEffect(java.awt.Color.BLACK));
-      cageOperation.loadGlyphs(); // Load Glyphs
+      cageOperation.loadGlyphs();
 
-      input = new UnicodeFont(FONT_PATH, 25, false, false);
-      input.addAsciiGlyphs(); // Add Glyphs
-      input.addGlyphs(400, 600); // Add Glyphs
+      input = new UnicodeFont(FONT_PATH, ENTRY_FONT_SIZE, false, false);
+      input.addAsciiGlyphs();
+      input.addGlyphs(400, 600);
       input.getEffects().add(new ColorEffect(java.awt.Color.BLACK));
-      input.loadGlyphs(); // Load Glyphs
+      input.loadGlyphs();
     } catch (SlickException e) {
-      System.out.println("FAILED TO CREATE FONT!! EXITING...");
+      System.out.println("Failed to create font. Exiting.");
       e.printStackTrace();
       System.exit(1);
     }
