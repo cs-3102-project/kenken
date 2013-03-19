@@ -13,6 +13,7 @@ public class Problem {
   ArrayList<ArrayList<Integer>> grid;
 
   private final Random          rand = new Random();
+  int curID = 0;
 
   public Problem(int size) {
     this.size = size;
@@ -69,7 +70,6 @@ public class Problem {
     directions.add("S");
     directions.add("W");
 
-    int curID = 0;
     int curX = -1;
     int curY = -1;
     int nextX = -1;
@@ -187,6 +187,10 @@ public class Problem {
 
   public ArrayList<ArrayList<Integer>> getGrid() {
     return grid;
+  }
+  
+  public int getCurID() {
+    return curID;
   }
 
 }

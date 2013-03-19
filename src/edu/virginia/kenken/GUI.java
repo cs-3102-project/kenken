@@ -3,6 +3,7 @@ package edu.virginia.kenken;
 import static org.lwjgl.opengl.GL11.*;
 
 import java.util.ArrayList;
+import java.util.Collections;
 
 import org.lwjgl.LWJGLException;
 import org.lwjgl.opengl.Display;
@@ -13,10 +14,14 @@ import org.newdawn.slick.font.effects.ColorEffect;
 
 public class GUI {
 
-  private static final int H_OFFSET      = 15;
-  private static final int V_OFFSET      = 15;
-  private static final int WINDOW_WIDTH  = 640;
-  private static final int WINDOW_HEIGHT = 480;
+  private static final int H_OFFSET         = 15;
+  private static final int V_OFFSET         = 15;
+  private static final int WINDOW_WIDTH     = 640;
+  private static final int WINDOW_HEIGHT    = 480;
+  private static final int OPERATION_OFFSET = 5;
+  private static String fontPath = "res/DroidSans.ttf";
+  private static UnicodeFont cageOperation = null;
+  private static ArrayList<Boolean> cageProcessed;
 
   public GUI() {
     init();
@@ -158,20 +163,39 @@ public class GUI {
     glVertex2i(H_OFFSET + size * cellWidth, V_OFFSET + cellWidth * size);
     glEnd();
     
-    // Draw Hello World
+    // Draw cage operations
+    cageProcessed = new ArrayList<Boolean>(Collections.nCopies(problem
+      .getCurID(), false));
     
-    String fontPath = "res/DroidSans.ttf";
     try {
       // Specify the font size with the second parameter to the constructor
-      UnicodeFont uFont = new UnicodeFont(fontPath , 40, false, false);
-      uFont.addAsciiGlyphs();   // Add Glyphs
-      uFont.addGlyphs(400, 600); // Add Glyphs
-      uFont.getEffects().add(new ColorEffect(java.awt.Color.BLACK));
-      uFont.loadGlyphs();  // Load Glyphs
-      uFont.drawString(20.0f, 20.0f, "Hello World");
+      cageOperation = new UnicodeFont(fontPath , 12, false, false);
+      cageOperation.addAsciiGlyphs();   // Add Glyphs
+      cageOperation.addGlyphs(400, 600); // Add Glyphs
+      cageOperation.getEffects().add(new ColorEffect(java.awt.Color.BLACK));
+      cageOperation.loadGlyphs();  // Load Glyphs
+      
     } catch (SlickException e) {
       // TODO Auto-generated catch block
+      System.out.println("FAILED TO CREATE FONT!! EXITING...");
+      System.exit(1);
       e.printStackTrace();
     }
+    
+    // Traverse through grid; if we find a number that we have not seen before,
+    // then write the operation on the corresponding cell
+    // note: there are curID cages, from 0 to curID - 1
+    for(int i = 0; i < size; ++i)
+    {
+      for(int j = 0; j < size; ++j)
+      {
+        if(cageProcessed.get(grid.get(i).get(j)) == false)
+        {
+          cageOperation.drawString(H_OFFSET + OPERATION_OFFSET + cellWidth * j,
+            V_OFFSET + OPERATION_OFFSET + cellWidth * i, "Hi");
+          cageProcessed.set(grid.get(i).get(j), true); 
+        }
+      }
+    }    
   }
 }
