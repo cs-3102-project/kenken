@@ -16,20 +16,20 @@ import org.newdawn.slick.font.effects.ColorEffect;
 
 public class GUI {
 
-  private static final int   H_OFFSET         = 15;
-  private static final int   V_OFFSET         = 15;
-  private static final int   WINDOW_WIDTH     = 640;
-  private static final int   WINDOW_HEIGHT    = 480;
-  private static final int   OPERATION_OFFSET = 5;
-  private static final int   NUMBER_OFFSET_X  = 17;
-  private static final int   NUMBER_OFFSET_Y  = 10;
+  private static final int    H_OFFSET         = 15;
+  private static final int    V_OFFSET         = 15;
+  private static final int    WINDOW_WIDTH     = 640;
+  private static final int    WINDOW_HEIGHT    = 480;
+  private static final int    OPERATION_OFFSET = 5;
+  private static final int    NUMBER_OFFSET_X  = 17;
+  private static final int    NUMBER_OFFSET_Y  = 10;
+  private static final String FONT_PATH        = "res/DroidSans.ttf";
 
-  private int                size;
-  private int                cellWidth;
-  private final String       fontPath         = "res/DroidSans.ttf";
-  private UnicodeFont        cageOperation    = null;
-  private UnicodeFont        input            = null;
-  private ArrayList<Boolean> cageProcessed;
+  private int                 size;
+  private int                 cellWidth;
+  private UnicodeFont         cageOperation    = null;
+  private UnicodeFont         input            = null;
+  private ArrayList<Boolean>  cageProcessed;
 
   public GUI() {
     init();
@@ -175,17 +175,17 @@ public class GUI {
     // Draw cage clues
 
     cageProcessed =
-      new ArrayList<Boolean>(Collections.nCopies(problem.getCurID(), false));
+      new ArrayList<Boolean>(Collections.nCopies(problem.getNumCages(), false));
 
     try {
       // Specify the font size with the second parameter to the constructor
-      cageOperation = new UnicodeFont(fontPath, 12, false, false);
+      cageOperation = new UnicodeFont(FONT_PATH, 12, false, false);
       cageOperation.addAsciiGlyphs(); // Add Glyphs
       cageOperation.addGlyphs(400, 600); // Add Glyphs
       cageOperation.getEffects().add(new ColorEffect(java.awt.Color.BLACK));
       cageOperation.loadGlyphs(); // Load Glyphs
 
-      input = new UnicodeFont(fontPath, 25, false, false);
+      input = new UnicodeFont(FONT_PATH, 25, false, false);
       input.addAsciiGlyphs(); // Add Glyphs
       input.addGlyphs(400, 600); // Add Glyphs
       input.getEffects().add(new ColorEffect(java.awt.Color.BLACK));

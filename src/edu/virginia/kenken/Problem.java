@@ -6,17 +6,16 @@ import java.util.Random;
 
 public class Problem {
 
-  private final int             size;
-  ArrayList<ArrayList<Boolean>> hWalls;
-  ArrayList<ArrayList<Boolean>> vWalls;
+  private final int                           size;
+  private final ArrayList<ArrayList<Integer>> grid;
+  private int                                 numCages;
 
-  ArrayList<ArrayList<Integer>> grid;
-
-  private final Random          rand = new Random();
-  int curID = 0;
+  private final Random                        rand;
 
   public Problem(int size) {
     this.size = size;
+    numCages = 0;
+    rand = new Random();
 
     ArrayList<ArrayList<Integer>> cells = new ArrayList<ArrayList<Integer>>();
 
@@ -70,6 +69,7 @@ public class Problem {
     directions.add("S");
     directions.add("W");
 
+    int curID = 0;
     int curX = -1;
     int curY = -1;
     int nextX = -1;
@@ -131,6 +131,11 @@ public class Problem {
 
       // Grow cage, cell by cell
       while (true) {
+        // Stop when maximum cage size is reached
+        if (cageSize >= maxCageSize) {
+          break;
+        }
+
         growable = false;
 
         // Randomly choose growth direction
@@ -178,6 +183,9 @@ public class Problem {
       curID += 1;
     }
 
+    numCages = curID + 1;
+
+    System.out.println("Number of cages: " + numCages);
     System.out.println("Cage size distribution: " + sizeDistribution);
   }
 
@@ -188,9 +196,9 @@ public class Problem {
   public ArrayList<ArrayList<Integer>> getGrid() {
     return grid;
   }
-  
-  public int getCurID() {
-    return curID;
+
+  public int getNumCages() {
+    return numCages;
   }
 
 }
