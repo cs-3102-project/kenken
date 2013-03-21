@@ -176,8 +176,8 @@ public class Problem {
 
         // If next cell is valid, add it to cage and move to it
         if (growable && cageSize < maxCageSize) {
+          cage.add(nextY * size + nextX);
           grid.get(nextY).set(nextX, curID);
-          cage.add(curY * size + curX);
           curX = nextX;
           curY = nextY;
           cageSize += 1;
@@ -186,7 +186,11 @@ public class Problem {
         }
       }
 
-      cages.add(cage);
+      // TODO Add a probabilistic switch to allow cages other than AdditionCage
+      // TODO Change summands from cell IDs (temporary, for testing only) to
+      // actual cell values
+      cages.add(new AdditionCage(cage));
+
       sizeDistribution
         .set(cageSize - 1, sizeDistribution.get(cageSize - 1) + 1);
       curID += 1;

@@ -4,6 +4,8 @@ import static org.lwjgl.opengl.GL11.*;
 
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.Map;
+import java.util.TreeMap;
 
 import org.lwjgl.LWJGLException;
 import org.lwjgl.input.Keyboard;
@@ -55,7 +57,8 @@ public class GUI {
   // Matrix of user's cell guesses
   private ArrayList<ArrayList<Integer>> entryGrid;
 
-  // Records which cells display their cages' clues
+  // Maps clue cells to clue text
+  private TreeMap<Integer, String>      clueText;
   private ArrayList<ArrayList<Boolean>> cellHasClue;
 
   // Used for pollInput()
@@ -87,6 +90,11 @@ public class GUI {
     for (int i = 0; i < size; ++i) {
       entryGrid.add(new ArrayList<Integer>(Collections.nCopies(size, -1)));
       cellHasClue.add(new ArrayList<Boolean>(Collections.nCopies(size, false)));
+    }
+
+    clueText = new TreeMap<Integer, String>();
+    for (Cage c : problem.getCages()) {
+      clueText.put(c.getCells().get(0), c.getTotal() + "");
     }
   }
 
@@ -173,22 +181,13 @@ public class GUI {
    * @param problem The problem instance
    */
   public void drawProblem() {
-    // TODO Move the initialization portion of the loop into init()
-    // Draw cage clues
-    ArrayList<Boolean> cagesFound =
-      new ArrayList<Boolean>(Collections.nCopies(problem.getNumCages(), false));
-    // Traverse through cageIDs; if we find a number that we have not seen
-    // before,
-    // then write the operation on the corresponding cell
-    for (int i = 0; i < size; ++i) {
-      for (int j = 0; j < size; ++j) {
-        if (!cagesFound.get(cageIDs.get(i).get(j))) {
-          clueFont.drawString(BOARD_OFFSET_X + CLUE_OFFSET + cellWidth * j,
-            BOARD_OFFSET_Y + CLUE_OFFSET + cellWidth * i, "Hi", Color.black);
-          cagesFound.set(cageIDs.get(i).get(j), true);
-          cellHasClue.get(j).set(i, true);
-        }
-      }
+    // Draw clue text
+    // TODO Change "Hi" to e.getValue()
+    for (Map.Entry<Integer, String> e : clueText.entrySet()) {
+      clueFont.drawString(
+        BOARD_OFFSET_X + CLUE_OFFSET + cellWidth * (e.getKey() / size),
+        BOARD_OFFSET_Y + CLUE_OFFSET + cellWidth * (e.getKey() % size), "Hi",
+        Color.black);
     }
 
     // Draw cageIDs guides

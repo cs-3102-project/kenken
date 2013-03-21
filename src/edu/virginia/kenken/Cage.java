@@ -12,6 +12,10 @@ public class Cage extends Constraint {
     setCells(src.getCells());
   }
 
+  public int getTotal() {
+    return total;
+  }
+
   public void setTotal(int total) {
     this.total = total;
   }

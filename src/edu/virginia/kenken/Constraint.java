@@ -1,6 +1,7 @@
 package edu.virginia.kenken;
 
 import java.util.ArrayList;
+import java.util.Collections;
 
 public class Constraint {
   private ArrayList<Integer> cells;
@@ -19,5 +20,6 @@ public class Constraint {
 
   public void add(Integer cellID) {
     cells.add(cellID);
+    Collections.sort(cells);
   }
 }
