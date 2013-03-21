@@ -38,9 +38,6 @@ public class GUI {
 
   private static final String           FONT_PATH       = "res/DroidSans.ttf";
 
-  // Problem instance
-  private Problem                       problem;
-
   // Height (or width) of problem in cells
   private int                           size;
 
@@ -80,7 +77,6 @@ public class GUI {
    * Load a new problem instance into the main window.
    */
   private void setProblem(Problem problem) {
-    this.problem = problem;
     size = problem.getSize();
     cellWidth = BOARD_WIDTH / size;
     cageIDs = problem.getGrid();
