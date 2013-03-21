@@ -18,6 +18,10 @@ import org.newdawn.slick.SlickException;
 import org.newdawn.slick.UnicodeFont;
 import org.newdawn.slick.font.effects.ColorEffect;
 
+/**
+ * @author art
+ *
+ */
 public class GUI {
 
   // Board constants
@@ -61,14 +65,8 @@ public class GUI {
   private ArrayList<ArrayList<Boolean>> cellHasClue;
 
   // Used for pollInput()
-  private int                           cellX;
-  private int                           cellY;
-  private int                           originX;
-  private int                           originY;
-  private int                           oldCellX;
-  private int                           oldCellY;
-  private int                           oldOriginX;
-  private int                           oldOriginY;
+  private int                           hoverCellX;
+  private int                           hoverCellY;
 
   public GUI(Problem problem) {
     setProblem(problem);
@@ -198,6 +196,24 @@ public class GUI {
       glEnd();
     }
 
+    // Draw highlighted cell's background
+    if (hoverCellX >= 0 && hoverCellX < size && hoverCellY >= 0
+      && hoverCellY < size) {
+      // Highlight the new cell
+      // TODO replace GL_QUADS with GL_TRIANGLEs
+      glColor3f(0.9f, 0.9f, 0.9f);
+      glBegin(GL_QUADS);
+      glVertex2f(BOARD_OFFSET_X + hoverCellX * cellWidth, BOARD_OFFSET_Y
+        + hoverCellY * cellWidth);
+      glVertex2f(BOARD_OFFSET_X + (hoverCellX + 1) * cellWidth, BOARD_OFFSET_Y
+        + hoverCellY * cellWidth);
+      glVertex2f(BOARD_OFFSET_X + (hoverCellX + 1) * cellWidth, BOARD_OFFSET_Y
+        + (hoverCellY + 1) * cellWidth);
+      glVertex2f(BOARD_OFFSET_X + hoverCellX * cellWidth, BOARD_OFFSET_Y
+        + (hoverCellY + 1) * cellWidth);
+      glEnd();
+    }
+
     // Draw cell walls (note that when traversing the cageIDs in either the
     // left-to-right or top-to-bottom direction, a wall needs to be placed if
     // and only if the current cell belongs to a different cage from the
@@ -256,84 +272,42 @@ public class GUI {
       clueFont.drawString(
         BOARD_OFFSET_X + CLUE_OFFSET_X + cellWidth * (e.getKey() % size),
         BOARD_OFFSET_Y + CLUE_OFFSET_Y + cellWidth * (e.getKey() / size),
-        e.getValue(), Color.black);
+        e.getValue(), Color.darkGray);
     }
+
+    // Draw entry text
+    for (int i = 0; i < size; ++i) {
+      for (int j = 0; j < size; ++j) {
+        if (entryGrid.get(i).get(j) > 0) {
+          entryFont.drawString(BOARD_OFFSET_X + j * cellWidth + ENTRY_OFFSET_X,
+            BOARD_OFFSET_Y + i * cellWidth + ENTRY_OFFSET_Y,
+            Integer.toString(entryGrid.get(i).get(j)), Color.black);
+        }
+      }
+    }
+
+    // Call this last, after rendering fonts
     GL11.glDisable(GL11.GL_TEXTURE_2D);
   }
 
-  // TODO replace GL_QUADS with GL_TRIANGLEs since the former is being
-  // deprecated in OpenGL 3
-  // TODO make the highlighting of the cell cover an area smaller so we don't
-  // overwrite the cageIDs lines
+  /**
+   * Detect user input from keyboard and mouse.
+   */
   private void pollInput() {
-    cellX = (Mouse.getX() - BOARD_OFFSET_X) / cellWidth;
-    cellY = (WINDOW_HEIGHT - Mouse.getY() - BOARD_OFFSET_Y) / cellWidth;
+    // Need "+ cellWidth ... - 1" to make -0.5 round to -1 instead of 0
+    // TODO Find a better way to do the above
+    hoverCellX = (Mouse.getX() - BOARD_OFFSET_X + cellWidth) / cellWidth - 1;
+    hoverCellY =
+      (WINDOW_HEIGHT - Mouse.getY() - BOARD_OFFSET_Y + cellWidth) / cellWidth
+        - 1;
 
-    if (cellX >= 0 && cellX < size && cellY >= 0 && cellY < size) {
-      originX = cellX * cellWidth + BOARD_OFFSET_X;
-      originY = cellY * cellWidth + BOARD_OFFSET_Y;
-
-      // Removes the rendering lag (fade effect)
-      glDisable(GL_TEXTURE_2D);
-
-      // Un-highlight the old cell
-      glColor3f(1.0f, 1.0f, 1.0f);
-      glBegin(GL_QUADS);
-      glVertex2f(oldOriginX, oldOriginY);
-      glVertex2f(oldOriginX + cellWidth, oldOriginY);
-      glVertex2f(oldOriginX + cellWidth, oldOriginY + cellWidth);
-      glVertex2f(oldOriginX, oldOriginY + cellWidth);
-      glEnd();
-
-      // Highlight the new cell
-      glColor3f(0.9f, 0.9f, 0.9f);
-      glBegin(GL_QUADS);
-      glVertex2f(originX, originY);
-      glVertex2f(originX + cellWidth, originY);
-      glVertex2f(originX + cellWidth, originY + cellWidth);
-      glVertex2f(originX, originY + cellWidth);
-      glEnd();
-
-      // Restore entry value
-      if (entryGrid.get(oldCellY).get(oldCellX) >= 0) {
-        entryFont.drawString(oldOriginX + ENTRY_OFFSET_X, oldOriginY
-          + ENTRY_OFFSET_Y,
-          Integer.toString(entryGrid.get(oldCellY).get(oldCellX)), Color.black);
-      }
-
-      if (entryGrid.get(cellY).get(cellX) >= 0) {
-        entryFont.drawString(originX + ENTRY_OFFSET_X,
-          originY + ENTRY_OFFSET_Y,
-          Integer.toString(entryGrid.get(cellY).get(cellX)), Color.black);
-      }
-
-      // Restore hints if necessary
-      if (cellHasClue.get(oldCellX).get(oldCellY)) {
-        clueFont.drawString(BOARD_OFFSET_X + CLUE_OFFSET_X + cellWidth
-          * oldCellX, BOARD_OFFSET_Y + CLUE_OFFSET_Y + cellWidth * oldCellY,
-          "Hi", Color.black);
-      }
-
-      if (cellHasClue.get(cellX).get(cellY)) {
-        clueFont
-          .drawString(BOARD_OFFSET_X + CLUE_OFFSET_X + cellWidth * cellX,
-            BOARD_OFFSET_Y + CLUE_OFFSET_Y + cellWidth * cellY, "Hi",
-            Color.black);
-      }
-
-      oldCellX = cellX;
-      oldCellY = cellY;
-      oldOriginX = originX;
-      oldOriginY = originY;
-
+    // Draw only if mouse is over board
+    if (hoverCellX >= 0 && hoverCellX < size && hoverCellY >= 0
+      && hoverCellY < size) {
       int charCode;
       while (Keyboard.next()) {
-        charCode = Keyboard.getEventKey();
-        if (charCode <= 11) {
-          entryFont.drawString(originX + ENTRY_OFFSET_X, originY
-            + ENTRY_OFFSET_Y, Integer.toString((charCode - 1) % 10),
-            Color.black);
-          entryGrid.get(cellY).set(cellX, (charCode - 1) % 10);
+        if ((charCode = Keyboard.getEventKey()) <= 11) {
+          entryGrid.get(hoverCellY).set(hoverCellX, (charCode - 1) % 10);
         }
       }
     }
