@@ -10,7 +10,6 @@ import org.lwjgl.input.Keyboard;
 import org.lwjgl.input.Mouse;
 import org.lwjgl.opengl.Display;
 import org.lwjgl.opengl.DisplayMode;
-import org.lwjgl.opengl.GL11;
 import org.newdawn.slick.Color;
 import org.newdawn.slick.SlickException;
 import org.newdawn.slick.UnicodeFont;
@@ -18,29 +17,35 @@ import org.newdawn.slick.font.effects.ColorEffect;
 
 public class GUI {
 
-  private static final int    H_OFFSET         = 15;
-  private static final int    V_OFFSET         = 15;
-  private static final int    WINDOW_WIDTH     = 640;
-  private static final int    WINDOW_HEIGHT    = 480;
-  private static final int    OPERATION_OFFSET = 5;
-  private static final int    NUMBER_OFFSET_X  = 17;
-  private static final int    NUMBER_OFFSET_Y  = 10;
-  private static final int    CLUE_FONT_SIZE   = 12;
-  private static final int    ENTRY_FONT_SIZE  = 25;
-  private static final String FONT_PATH        = "res/DroidSans.ttf";
+  // Board constants
+  private static final int              WINDOW_WIDTH    = 640;
+  private static final int              WINDOW_HEIGHT   = 480;
+  private static final float            LINE_WIDTH      = 2.0f;
+  private static final int              BOARD_OFFSET_X  = 15;
+  private static final int              BOARD_OFFSET_Y  = 15;
 
-  private Problem             problem;
-  private int                 size;
-  private int                 cellWidth;
-  private UnicodeFont         cageOperation;
-  private UnicodeFont         input;
-  private ArrayList<Boolean>  cageProcessed;
-  private int                 oldCellX;
-  private int                 oldCellY;
-  private int                 oldOriginX;
-  private int                 oldOriginY;
-  private ArrayList<ArrayList<Integer>>  inputGrid;
-  private ArrayList<ArrayList<Boolean>>  cellHasClue;
+  // Clue constants
+  private static final int              CLUE_OFFSET     = 5;
+  private static final int              CLUE_FONT_SIZE  = 12;
+
+  // Entry constants
+  private static final int              ENTRY_OFFSET_X  = 17;
+  private static final int              ENTRY_OFFSET_Y  = 10;
+  private static final int              ENTRY_FONT_SIZE = 25;
+
+  private static final String           FONT_PATH       = "res/DroidSans.ttf";
+
+  private Problem                       problem;
+  private int                           size;
+  private int                           cellWidth;
+  private UnicodeFont                   clueFont;
+  private UnicodeFont                   entryFont;
+  private int                           oldCellX;
+  private int                           oldCellY;
+  private int                           oldOriginX;
+  private int                           oldOriginY;
+  private ArrayList<ArrayList<Integer>> inputGrid;
+  private ArrayList<ArrayList<Boolean>> cellHasClue;
 
   public GUI(Problem problem) {
     setProblem(problem);
@@ -53,12 +58,11 @@ public class GUI {
     this.cellWidth = 450 / size;
     inputGrid = new ArrayList<ArrayList<Integer>>();
     cellHasClue = new ArrayList<ArrayList<Boolean>>();
-    for(int i = 0; i < size; ++i)
-    {
+    for (int i = 0; i < size; ++i) {
       inputGrid.add(new ArrayList<Integer>(Collections.nCopies(size, -1)));
       cellHasClue.add(new ArrayList<Boolean>(Collections.nCopies(size, false)));
     }
-    
+
   }
 
   /**
@@ -86,7 +90,6 @@ public class GUI {
     glMatrixMode(GL_MODELVIEW);
     glEnable(GL_COLOR_MATERIAL);
 
-
     // Set background color to white
 
     glClearColor(1.0f, 1.0f, 1.0f, 0.0f);
@@ -94,29 +97,29 @@ public class GUI {
 
     // Line thickness
 
-    glLineWidth(2.0f);
-    
-    try {
-      cageOperation = new UnicodeFont(FONT_PATH, CLUE_FONT_SIZE, false, false);
-      cageOperation.addAsciiGlyphs();
-      cageOperation.addGlyphs(400, 600);
-      cageOperation.getEffects().add(new ColorEffect());
-      cageOperation.loadGlyphs();
+    glLineWidth(LINE_WIDTH);
 
-      input = new UnicodeFont(FONT_PATH, ENTRY_FONT_SIZE, false, false);
-      input.addAsciiGlyphs();
-      input.addGlyphs(400, 600);
-      input.getEffects().add(new ColorEffect());
-      input.loadGlyphs();
+    try {
+      clueFont = new UnicodeFont(FONT_PATH, CLUE_FONT_SIZE, false, false);
+      clueFont.addAsciiGlyphs();
+      clueFont.addGlyphs(400, 600);
+      clueFont.getEffects().add(new ColorEffect());
+      clueFont.loadGlyphs();
+
+      entryFont = new UnicodeFont(FONT_PATH, ENTRY_FONT_SIZE, false, false);
+      entryFont.addAsciiGlyphs();
+      entryFont.addGlyphs(400, 600);
+      entryFont.getEffects().add(new ColorEffect());
+      entryFont.loadGlyphs();
     } catch (SlickException e) {
       System.out.println("Failed to create font. Exiting.");
       e.printStackTrace();
       System.exit(1);
     }
-    
+
     // Draw cage clues
     ArrayList<ArrayList<Integer>> grid = problem.getGrid();
-    cageProcessed =
+    ArrayList<Boolean> cageProcessed =
       new ArrayList<Boolean>(Collections.nCopies(problem.getNumCages(), false));
     // Traverse through grid; if we find a number that we have not seen before,
     // then write the operation on the corresponding cell
@@ -124,8 +127,8 @@ public class GUI {
     for (int i = 0; i < size; ++i) {
       for (int j = 0; j < size; ++j) {
         if (cageProcessed.get(grid.get(i).get(j)) == false) {
-          cageOperation.drawString(H_OFFSET + OPERATION_OFFSET + cellWidth * j,
-            V_OFFSET + OPERATION_OFFSET + cellWidth * i, "Hi", Color.black);
+          clueFont.drawString(BOARD_OFFSET_X + CLUE_OFFSET + cellWidth * j,
+            BOARD_OFFSET_Y + CLUE_OFFSET + cellWidth * i, "Hi", Color.black);
           cageProcessed.set(grid.get(i).get(j), true);
           cellHasClue.get(j).set(i, true);
         }
@@ -170,14 +173,16 @@ public class GUI {
     for (int i = 1; i < size; ++i) {
       // Horizontal lines
       glBegin(GL_LINES);
-      glVertex2i(H_OFFSET, V_OFFSET + cellWidth * i);
-      glVertex2i(H_OFFSET + size * cellWidth, V_OFFSET + cellWidth * i);
+      glVertex2i(BOARD_OFFSET_X, BOARD_OFFSET_Y + cellWidth * i);
+      glVertex2i(BOARD_OFFSET_X + size * cellWidth, BOARD_OFFSET_Y + cellWidth
+        * i);
       glEnd();
 
       // Vertical lines
       glBegin(GL_LINES);
-      glVertex2i(H_OFFSET + i * cellWidth, V_OFFSET);
-      glVertex2i(H_OFFSET + i * cellWidth, V_OFFSET + cellWidth * size);
+      glVertex2i(BOARD_OFFSET_X + i * cellWidth, BOARD_OFFSET_Y);
+      glVertex2i(BOARD_OFFSET_X + i * cellWidth, BOARD_OFFSET_Y + cellWidth
+        * size);
       glEnd();
     }
 
@@ -195,15 +200,19 @@ public class GUI {
       for (int j = 0; j < size; ++j) {
         if (grid.get(j).get(i) != hID) {
           glBegin(GL_LINES);
-          glVertex2i(H_OFFSET + i * cellWidth, V_OFFSET + cellWidth * j);
-          glVertex2i(H_OFFSET + (i + 1) * cellWidth, V_OFFSET + cellWidth * j);
+          glVertex2i(BOARD_OFFSET_X + i * cellWidth, BOARD_OFFSET_Y + cellWidth
+            * j);
+          glVertex2i(BOARD_OFFSET_X + (i + 1) * cellWidth, BOARD_OFFSET_Y
+            + cellWidth * j);
           glEnd();
           hID = grid.get(j).get(i);
         }
         if (grid.get(i).get(j) != vID) {
           glBegin(GL_LINES);
-          glVertex2i(H_OFFSET + j * cellWidth, V_OFFSET + cellWidth * i);
-          glVertex2i(H_OFFSET + j * cellWidth, V_OFFSET + cellWidth * (i + 1));
+          glVertex2i(BOARD_OFFSET_X + j * cellWidth, BOARD_OFFSET_Y + cellWidth
+            * i);
+          glVertex2i(BOARD_OFFSET_X + j * cellWidth, BOARD_OFFSET_Y + cellWidth
+            * (i + 1));
           glEnd();
           vID = grid.get(i).get(j);
         }
@@ -213,23 +222,25 @@ public class GUI {
     // Draw boundary
 
     glBegin(GL_LINES); // Top
-    glVertex2i(H_OFFSET, V_OFFSET);
-    glVertex2i(H_OFFSET + size * cellWidth, V_OFFSET);
+    glVertex2i(BOARD_OFFSET_X, BOARD_OFFSET_Y);
+    glVertex2i(BOARD_OFFSET_X + size * cellWidth, BOARD_OFFSET_Y);
     glEnd();
 
     glBegin(GL_LINES); // Bottom
-    glVertex2i(H_OFFSET, V_OFFSET + cellWidth * size);
-    glVertex2i(H_OFFSET + size * cellWidth, V_OFFSET + cellWidth * size);
+    glVertex2i(BOARD_OFFSET_X, BOARD_OFFSET_Y + cellWidth * size);
+    glVertex2i(BOARD_OFFSET_X + size * cellWidth, BOARD_OFFSET_Y + cellWidth
+      * size);
     glEnd();
 
     glBegin(GL_LINES); // Left
-    glVertex2i(H_OFFSET, V_OFFSET);
-    glVertex2i(H_OFFSET, V_OFFSET + cellWidth * size);
+    glVertex2i(BOARD_OFFSET_X, BOARD_OFFSET_Y);
+    glVertex2i(BOARD_OFFSET_X, BOARD_OFFSET_Y + cellWidth * size);
     glEnd();
 
     glBegin(GL_LINES); // Right
-    glVertex2i(H_OFFSET + size * cellWidth, V_OFFSET);
-    glVertex2i(H_OFFSET + size * cellWidth, V_OFFSET + cellWidth * size);
+    glVertex2i(BOARD_OFFSET_X + size * cellWidth, BOARD_OFFSET_Y);
+    glVertex2i(BOARD_OFFSET_X + size * cellWidth, BOARD_OFFSET_Y + cellWidth
+      * size);
     glEnd();
   }
 
@@ -240,16 +251,16 @@ public class GUI {
   // TODO make the highlighting of the cell cover an area smaller so we don't
   // overwrite the grid lines
   private void pollInput() {
-    int cellX = (Mouse.getX() / cellWidth);
-    int cellY = (WINDOW_HEIGHT - Mouse.getY()) / cellWidth;
-    int originX = cellX * cellWidth + H_OFFSET;
-    int originY = cellY * cellWidth + V_OFFSET;
-      
-    if(cellX < size && cellY < size) {
-    
+    int cellX = (Mouse.getX() - BOARD_OFFSET_X) / cellWidth;
+    int cellY = (WINDOW_HEIGHT - Mouse.getY() - BOARD_OFFSET_Y) / cellWidth;
+    int originX = cellX * cellWidth + BOARD_OFFSET_X;
+    int originY = cellY * cellWidth + BOARD_OFFSET_Y;
+
+    if (cellX < size && cellY < size) {
+
       // Removes the rendering lag (fade effect)
       glDisable(GL_TEXTURE_2D);
-        
+
       // Restore the old cell
       glColor3f(1.0f, 1.0f, 1.0f);
       glBegin(GL_QUADS);
@@ -258,7 +269,7 @@ public class GUI {
       glVertex2f(oldOriginX + cellWidth, oldOriginY + cellWidth);
       glVertex2f(oldOriginX, oldOriginY + cellWidth);
       glEnd();
-      
+
       // Highlight the new cell
       glColor3f(0.5f, 0.0f, 0.0f);
       glBegin(GL_QUADS);
@@ -267,33 +278,32 @@ public class GUI {
       glVertex2f(originX + cellWidth, originY + cellWidth);
       glVertex2f(originX, originY + cellWidth);
       glEnd();
-      
-      // Restore input
-      if(inputGrid.get(oldCellX).get(oldCellY) >= 0)
-      {
-        input.drawString(oldOriginX + NUMBER_OFFSET_X, oldOriginY + NUMBER_OFFSET_Y,
+
+      // Restore entryFont
+      if (inputGrid.get(oldCellX).get(oldCellY) >= 0) {
+        entryFont.drawString(oldOriginX + ENTRY_OFFSET_X, oldOriginY
+          + ENTRY_OFFSET_Y,
           Integer.toString(inputGrid.get(oldCellX).get(oldCellY)), Color.black);
       }
-          
-      if(inputGrid.get(cellX).get(cellY) >= 0)
-      {
-        input.drawString(originX + NUMBER_OFFSET_X, originY + NUMBER_OFFSET_Y,
+
+      if (inputGrid.get(cellX).get(cellY) >= 0) {
+        entryFont.drawString(originX + ENTRY_OFFSET_X,
+          originY + ENTRY_OFFSET_Y,
           Integer.toString(inputGrid.get(cellX).get(cellY)), Color.black);
       }
-      
+
       // Restore hints if necessary
-      if(cellHasClue.get(oldCellX).get(oldCellY))
-      {
-        cageOperation.drawString(H_OFFSET + OPERATION_OFFSET + cellWidth * oldCellX,
-          V_OFFSET + OPERATION_OFFSET + cellWidth * oldCellY, "Hi", Color.black);
+      if (cellHasClue.get(oldCellX).get(oldCellY)) {
+        clueFont.drawString(
+          BOARD_OFFSET_X + CLUE_OFFSET + cellWidth * oldCellX, BOARD_OFFSET_Y
+            + CLUE_OFFSET + cellWidth * oldCellY, "Hi", Color.black);
       }
-      
-      if(cellHasClue.get(cellX).get(cellY))
-      {
-        cageOperation.drawString(H_OFFSET + OPERATION_OFFSET + cellWidth * cellX,
-          V_OFFSET + OPERATION_OFFSET + cellWidth * cellY, "Hi", Color.black);
+
+      if (cellHasClue.get(cellX).get(cellY)) {
+        clueFont.drawString(BOARD_OFFSET_X + CLUE_OFFSET + cellWidth * cellX,
+          BOARD_OFFSET_Y + CLUE_OFFSET + cellWidth * cellY, "Hi", Color.black);
       }
-      
+
       oldCellX = cellX;
       oldCellY = cellY;
       oldOriginX = originX;
@@ -303,8 +313,9 @@ public class GUI {
       while (Keyboard.next()) {
         charCode = Keyboard.getEventKey();
         if (charCode <= 11) {
-          input.drawString(originX + NUMBER_OFFSET_X, originY + NUMBER_OFFSET_Y,
-            Integer.toString((charCode - 1) % 10), Color.black);
+          entryFont.drawString(originX + ENTRY_OFFSET_X, originY
+            + ENTRY_OFFSET_Y, Integer.toString((charCode - 1) % 10),
+            Color.black);
           inputGrid.get(cellX).set(cellY, (charCode - 1) % 10);
         }
       }
