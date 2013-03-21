@@ -12,6 +12,7 @@ import org.lwjgl.input.Keyboard;
 import org.lwjgl.input.Mouse;
 import org.lwjgl.opengl.Display;
 import org.lwjgl.opengl.DisplayMode;
+import org.lwjgl.opengl.GL11;
 import org.newdawn.slick.Color;
 import org.newdawn.slick.SlickException;
 import org.newdawn.slick.UnicodeFont;
@@ -177,15 +178,6 @@ public class GUI {
    * @param problem The problem instance
    */
   public void drawProblem() {
-    // Draw clue text
-    // TODO Change "Hi" to e.getValue()
-    for (Map.Entry<Integer, String> e : clueText.entrySet()) {
-      clueFont.drawString(
-        BOARD_OFFSET_X + CLUE_OFFSET + cellWidth * (e.getKey() / size),
-        BOARD_OFFSET_Y + CLUE_OFFSET + cellWidth * (e.getKey() % size), "Hi",
-        Color.black);
-    }
-
     // Draw cageIDs guides
     glColor3f(0.9f, 0.9f, 0.9f);
 
@@ -209,9 +201,7 @@ public class GUI {
     // left-to-right or top-to-bottom direction, a wall needs to be placed if
     // and only if the current cell belongs to a different cage from the
     // previous cell)
-
     glColor3f(0.0f, 0.0f, 0.0f);
-
     int hID = 0;
     int vID = 0;
     for (int i = 0; i < size; ++i) {
@@ -238,7 +228,6 @@ public class GUI {
     }
 
     // Draw board boundaries
-
     glBegin(GL_LINES); // Top
     glVertex2i(BOARD_OFFSET_X, BOARD_OFFSET_Y);
     glVertex2i(BOARD_OFFSET_X + size * cellWidth, BOARD_OFFSET_Y);
@@ -260,6 +249,15 @@ public class GUI {
     glVertex2i(BOARD_OFFSET_X + size * cellWidth, BOARD_OFFSET_Y + cellWidth
       * size);
     glEnd();
+
+    // Draw clue text
+    for (Map.Entry<Integer, String> e : clueText.entrySet()) {
+      clueFont.drawString(
+        BOARD_OFFSET_X + CLUE_OFFSET + cellWidth * (e.getKey() % size),
+        BOARD_OFFSET_Y + CLUE_OFFSET + cellWidth * (e.getKey() / size),
+        e.getValue(), Color.black);
+    }
+    GL11.glDisable(GL11.GL_TEXTURE_2D);
   }
 
   // TODO replace GL_QUADS with GL_TRIANGLEs since the former is being
