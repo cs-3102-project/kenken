@@ -1,5 +1,10 @@
 package edu.virginia.kenken;
 
-public class ModuloCage extends Cage {
+import java.util.Collections;
 
+public class ModuloCage extends Cage {
+  public ModuloCage(Cage src) {
+    super(src);
+    setTotal(Collections.max(getCells()) % Collections.min(getCells()));
+  }
 }

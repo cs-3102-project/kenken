@@ -9,7 +9,7 @@ public class Problem {
   private final int                           size;
   private final ArrayList<ArrayList<Integer>> grid;
   private int                                 numCages;
-  private final ArrayList<Cage>               cages;
+  private ArrayList<Cage>                     cages;
 
   private final Random                        rand;
 
@@ -59,7 +59,7 @@ public class Problem {
       System.out.print("\n");
     }
 
-    // Initialize grid
+    // Initialize cageIDs
 
     for (int i = 0; i < size; ++i) {
       grid.add(new ArrayList<Integer>(Collections.nCopies(size, -1)));
@@ -90,6 +90,9 @@ public class Problem {
     sizeDistribution.add(0);
     sizeDistribution.add(0);
     sizeDistribution.add(0);
+
+    cages = new ArrayList<Cage>(numCages);
+    Cage cage;
 
     // Each iteration generates a new cage
     while (true) {
@@ -128,6 +131,8 @@ public class Problem {
       }
 
       // Add current cell to new cage
+      cage = new Cage();
+      cage.add(curY * size + curX);
       grid.get(curY).set(curX, curID);
       cageSize = 1;
 
@@ -172,6 +177,7 @@ public class Problem {
         // If next cell is valid, add it to cage and move to it
         if (growable && cageSize < maxCageSize) {
           grid.get(nextY).set(nextX, curID);
+          cage.add(curY * size + curX);
           curX = nextX;
           curY = nextY;
           cageSize += 1;
@@ -180,6 +186,7 @@ public class Problem {
         }
       }
 
+      cages.add(cage);
       sizeDistribution
         .set(cageSize - 1, sizeDistribution.get(cageSize - 1) + 1);
       curID += 1;
@@ -201,6 +208,10 @@ public class Problem {
 
   public int getNumCages() {
     return numCages;
+  }
+
+  public ArrayList<Cage> getCages() {
+    return cages;
   }
 
 }

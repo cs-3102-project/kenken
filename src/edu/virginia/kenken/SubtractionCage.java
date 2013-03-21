@@ -1,5 +1,10 @@
 package edu.virginia.kenken;
 
-public class SubtractionCage extends Cage {
+import java.util.Collections;
 
+public class SubtractionCage extends Cage {
+  public SubtractionCage(Cage src) {
+    super(src);
+    setTotal(Collections.max(getCells()) - Collections.min(getCells()));
+  }
 }

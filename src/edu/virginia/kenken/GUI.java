@@ -42,6 +42,9 @@ public class GUI {
   // Height (or width) of problem in cells
   private int                           size;
 
+  // Grid of cage IDs
+  ArrayList<ArrayList<Integer>>         cageIDs;
+
   // Pixel width of a cell
   private int                           cellWidth;
 
@@ -75,8 +78,10 @@ public class GUI {
    */
   private void setProblem(Problem problem) {
     this.problem = problem;
-    this.size = problem.getSize();
-    this.cellWidth = BOARD_WIDTH / size;
+    size = problem.getSize();
+    cellWidth = BOARD_WIDTH / size;
+    cageIDs = problem.getGrid();
+
     entryGrid = new ArrayList<ArrayList<Integer>>();
     cellHasClue = new ArrayList<ArrayList<Boolean>>();
     for (int i = 0; i < size; ++i) {
@@ -136,24 +141,6 @@ public class GUI {
       System.exit(1);
     }
 
-    // Draw cage clues
-    ArrayList<ArrayList<Integer>> grid = problem.getGrid();
-    ArrayList<Boolean> cageProcessed =
-      new ArrayList<Boolean>(Collections.nCopies(problem.getNumCages(), false));
-    // Traverse through grid; if we find a number that we have not seen before,
-    // then write the operation on the corresponding cell
-    // note: there are curID cages, from 0 to curID - 1
-    for (int i = 0; i < size; ++i) {
-      for (int j = 0; j < size; ++j) {
-        if (cageProcessed.get(grid.get(i).get(j)) == false) {
-          clueFont.drawString(BOARD_OFFSET_X + CLUE_OFFSET + cellWidth * j,
-            BOARD_OFFSET_Y + CLUE_OFFSET + cellWidth * i, "Hi", Color.black);
-          cageProcessed.set(grid.get(i).get(j), true);
-          cellHasClue.get(j).set(i, true);
-        }
-      }
-    }
-
     System.out.println("Window initialized.");
   }
 
@@ -164,10 +151,11 @@ public class GUI {
     System.out.println("Main loop starting.");
 
     while (!Display.isCloseRequested()) {
+      glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+      Display.sync(60);
       pollInput();
       drawProblem();
       Display.update();
-      Display.sync(60);
     }
   }
 
@@ -185,7 +173,25 @@ public class GUI {
    * @param problem The problem instance
    */
   public void drawProblem() {
-    // Draw grid guides
+    // TODO Move the initialization portion of the loop into init()
+    // Draw cage clues
+    ArrayList<Boolean> cagesFound =
+      new ArrayList<Boolean>(Collections.nCopies(problem.getNumCages(), false));
+    // Traverse through cageIDs; if we find a number that we have not seen
+    // before,
+    // then write the operation on the corresponding cell
+    for (int i = 0; i < size; ++i) {
+      for (int j = 0; j < size; ++j) {
+        if (!cagesFound.get(cageIDs.get(i).get(j))) {
+          clueFont.drawString(BOARD_OFFSET_X + CLUE_OFFSET + cellWidth * j,
+            BOARD_OFFSET_Y + CLUE_OFFSET + cellWidth * i, "Hi", Color.black);
+          cagesFound.set(cageIDs.get(i).get(j), true);
+          cellHasClue.get(j).set(i, true);
+        }
+      }
+    }
+
+    // Draw cageIDs guides
     glColor3f(0.9f, 0.9f, 0.9f);
 
     for (int i = 1; i < size; ++i) {
@@ -204,7 +210,7 @@ public class GUI {
       glEnd();
     }
 
-    // Draw cell walls (note that when traversing the grid in either the
+    // Draw cell walls (note that when traversing the cageIDs in either the
     // left-to-right or top-to-bottom direction, a wall needs to be placed if
     // and only if the current cell belongs to a different cage from the
     // previous cell)
@@ -213,26 +219,25 @@ public class GUI {
 
     int hID = 0;
     int vID = 0;
-    ArrayList<ArrayList<Integer>> grid = problem.getGrid();
     for (int i = 0; i < size; ++i) {
       for (int j = 0; j < size; ++j) {
-        if (grid.get(j).get(i) != hID) {
+        if (cageIDs.get(j).get(i) != hID) {
           glBegin(GL_LINES);
           glVertex2i(BOARD_OFFSET_X + i * cellWidth, BOARD_OFFSET_Y + cellWidth
             * j);
           glVertex2i(BOARD_OFFSET_X + (i + 1) * cellWidth, BOARD_OFFSET_Y
             + cellWidth * j);
           glEnd();
-          hID = grid.get(j).get(i);
+          hID = cageIDs.get(j).get(i);
         }
-        if (grid.get(i).get(j) != vID) {
+        if (cageIDs.get(i).get(j) != vID) {
           glBegin(GL_LINES);
           glVertex2i(BOARD_OFFSET_X + j * cellWidth, BOARD_OFFSET_Y + cellWidth
             * i);
           glVertex2i(BOARD_OFFSET_X + j * cellWidth, BOARD_OFFSET_Y + cellWidth
             * (i + 1));
           glEnd();
-          vID = grid.get(i).get(j);
+          vID = cageIDs.get(i).get(j);
         }
       }
     }
@@ -262,19 +267,17 @@ public class GUI {
     glEnd();
   }
 
-  // Note: Mouse origin starts at the bottom left of the display, not top left
-
   // TODO replace GL_QUADS with GL_TRIANGLEs since the former is being
   // deprecated in OpenGL 3
   // TODO make the highlighting of the cell cover an area smaller so we don't
-  // overwrite the grid lines
+  // overwrite the cageIDs lines
   private void pollInput() {
     cellX = (Mouse.getX() - BOARD_OFFSET_X) / cellWidth;
     cellY = (WINDOW_HEIGHT - Mouse.getY() - BOARD_OFFSET_Y) / cellWidth;
-    originX = cellX * cellWidth + BOARD_OFFSET_X;
-    originY = cellY * cellWidth + BOARD_OFFSET_Y;
 
     if (cellX >= 0 && cellX < size && cellY >= 0 && cellY < size) {
+      originX = cellX * cellWidth + BOARD_OFFSET_X;
+      originY = cellY * cellWidth + BOARD_OFFSET_Y;
 
       // Removes the rendering lag (fade effect)
       glDisable(GL_TEXTURE_2D);
@@ -298,16 +301,16 @@ public class GUI {
       glEnd();
 
       // Restore entry value
-      if (entryGrid.get(oldCellX).get(oldCellY) >= 0) {
+      if (entryGrid.get(oldCellY).get(oldCellX) >= 0) {
         entryFont.drawString(oldOriginX + ENTRY_OFFSET_X, oldOriginY
           + ENTRY_OFFSET_Y,
-          Integer.toString(entryGrid.get(oldCellX).get(oldCellY)), Color.black);
+          Integer.toString(entryGrid.get(oldCellY).get(oldCellX)), Color.black);
       }
 
-      if (entryGrid.get(cellX).get(cellY) >= 0) {
+      if (entryGrid.get(cellY).get(cellX) >= 0) {
         entryFont.drawString(originX + ENTRY_OFFSET_X,
           originY + ENTRY_OFFSET_Y,
-          Integer.toString(entryGrid.get(cellX).get(cellY)), Color.black);
+          Integer.toString(entryGrid.get(cellY).get(cellX)), Color.black);
       }
 
       // Restore hints if necessary
@@ -334,7 +337,7 @@ public class GUI {
           entryFont.drawString(originX + ENTRY_OFFSET_X, originY
             + ENTRY_OFFSET_Y, Integer.toString((charCode - 1) % 10),
             Color.black);
-          entryGrid.get(cellX).set(cellY, (charCode - 1) % 10);
+          entryGrid.get(cellY).set(cellX, (charCode - 1) % 10);
         }
       }
     }
