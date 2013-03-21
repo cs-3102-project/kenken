@@ -10,6 +10,8 @@ import org.lwjgl.input.Keyboard;
 import org.lwjgl.input.Mouse;
 import org.lwjgl.opengl.Display;
 import org.lwjgl.opengl.DisplayMode;
+import org.lwjgl.opengl.GL11;
+import org.newdawn.slick.Color;
 import org.newdawn.slick.SlickException;
 import org.newdawn.slick.UnicodeFont;
 import org.newdawn.slick.font.effects.ColorEffect;
@@ -33,6 +35,12 @@ public class GUI {
   private UnicodeFont         cageOperation;
   private UnicodeFont         input;
   private ArrayList<Boolean>  cageProcessed;
+  private int                 oldCellX;
+  private int                 oldCellY;
+  private int                 oldOriginX;
+  private int                 oldOriginY;
+  private ArrayList<ArrayList<Integer>>  inputGrid;
+  private ArrayList<ArrayList<Boolean>>  cellHasClue;
 
   public GUI(Problem problem) {
     setProblem(problem);
@@ -43,6 +51,14 @@ public class GUI {
     this.problem = problem;
     this.size = problem.getSize();
     this.cellWidth = 450 / size;
+    inputGrid = new ArrayList<ArrayList<Integer>>();
+    cellHasClue = new ArrayList<ArrayList<Boolean>>();
+    for(int i = 0; i < size; ++i)
+    {
+      inputGrid.add(new ArrayList<Integer>(Collections.nCopies(size, -1)));
+      cellHasClue.add(new ArrayList<Boolean>(Collections.nCopies(size, false)));
+    }
+    
   }
 
   /**
@@ -70,6 +86,7 @@ public class GUI {
     glMatrixMode(GL_MODELVIEW);
     glEnable(GL_COLOR_MATERIAL);
 
+
     // Set background color to white
 
     glClearColor(1.0f, 1.0f, 1.0f, 0.0f);
@@ -78,6 +95,42 @@ public class GUI {
     // Line thickness
 
     glLineWidth(2.0f);
+    
+    try {
+      cageOperation = new UnicodeFont(FONT_PATH, CLUE_FONT_SIZE, false, false);
+      cageOperation.addAsciiGlyphs();
+      cageOperation.addGlyphs(400, 600);
+      cageOperation.getEffects().add(new ColorEffect());
+      cageOperation.loadGlyphs();
+
+      input = new UnicodeFont(FONT_PATH, ENTRY_FONT_SIZE, false, false);
+      input.addAsciiGlyphs();
+      input.addGlyphs(400, 600);
+      input.getEffects().add(new ColorEffect());
+      input.loadGlyphs();
+    } catch (SlickException e) {
+      System.out.println("Failed to create font. Exiting.");
+      e.printStackTrace();
+      System.exit(1);
+    }
+    
+    // Draw cage clues
+    ArrayList<ArrayList<Integer>> grid = problem.getGrid();
+    cageProcessed =
+      new ArrayList<Boolean>(Collections.nCopies(problem.getNumCages(), false));
+    // Traverse through grid; if we find a number that we have not seen before,
+    // then write the operation on the corresponding cell
+    // note: there are curID cages, from 0 to curID - 1
+    for (int i = 0; i < size; ++i) {
+      for (int j = 0; j < size; ++j) {
+        if (cageProcessed.get(grid.get(i).get(j)) == false) {
+          cageOperation.drawString(H_OFFSET + OPERATION_OFFSET + cellWidth * j,
+            V_OFFSET + OPERATION_OFFSET + cellWidth * i, "Hi", Color.black);
+          cageProcessed.set(grid.get(i).get(j), true);
+          cellHasClue.get(j).set(i, true);
+        }
+      }
+    }
 
     System.out.println("Window initialized.");
   }
@@ -90,6 +143,7 @@ public class GUI {
 
     while (!Display.isCloseRequested()) {
       pollInput();
+      drawProblem();
       Display.update();
       Display.sync(60);
     }
@@ -177,75 +231,82 @@ public class GUI {
     glVertex2i(H_OFFSET + size * cellWidth, V_OFFSET);
     glVertex2i(H_OFFSET + size * cellWidth, V_OFFSET + cellWidth * size);
     glEnd();
-
-    // Draw cage clues
-
-    cageProcessed =
-      new ArrayList<Boolean>(Collections.nCopies(problem.getNumCages(), false));
-
-    try {
-      cageOperation = new UnicodeFont(FONT_PATH, CLUE_FONT_SIZE, false, false);
-      cageOperation.addAsciiGlyphs();
-      cageOperation.addGlyphs(400, 600);
-      cageOperation.getEffects().add(new ColorEffect(java.awt.Color.BLACK));
-      cageOperation.loadGlyphs();
-
-      input = new UnicodeFont(FONT_PATH, ENTRY_FONT_SIZE, false, false);
-      input.addAsciiGlyphs();
-      input.addGlyphs(400, 600);
-      input.getEffects().add(new ColorEffect(java.awt.Color.BLACK));
-      input.loadGlyphs();
-    } catch (SlickException e) {
-      System.out.println("Failed to create font. Exiting.");
-      e.printStackTrace();
-      System.exit(1);
-    }
-
-    // Traverse through grid; if we find a number that we have not seen before,
-    // then write the operation on the corresponding cell
-    // note: there are curID cages, from 0 to curID - 1
-    for (int i = 0; i < size; ++i) {
-      for (int j = 0; j < size; ++j) {
-        if (cageProcessed.get(grid.get(i).get(j)) == false) {
-          cageOperation.drawString(H_OFFSET + OPERATION_OFFSET + cellWidth * j,
-            V_OFFSET + OPERATION_OFFSET + cellWidth * i, "Hi");
-          cageProcessed.set(grid.get(i).get(j), true);
-        }
-      }
-    }
   }
 
   // Note: Mouse origin starts at the bottom left of the display, not top left
-  // TODO find out why, for some funky reason, there is lag on the boundary we
-  // draw on
+
   // TODO replace GL_QUADS with GL_TRIANGLEs since the former is being
   // deprecated in OpenGL 3
-  // TODO change the color; for some reason, this cannot be done despite the
-  // call to glColor3f...
-  // TODO undraw quad when mouse moves away
-  // TODO clear the previous number when a new one has been entered by the user
+  // TODO make the highlighting of the cell cover an area smaller so we don't
+  // overwrite the grid lines
   private void pollInput() {
-    int originX = (Mouse.getX() / cellWidth) * cellWidth + H_OFFSET;
-    int originY =
-      ((WINDOW_HEIGHT - Mouse.getY()) / cellWidth) * cellWidth + V_OFFSET;
-    if (Mouse.getX() > H_OFFSET && Mouse.getY() > V_OFFSET
-      && Mouse.getX() < H_OFFSET + cellWidth * (size)
-      && Mouse.getY() < V_OFFSET + cellWidth * (size)) {
-      glColor3f(0.8f, 0.0f, 0.0f);
+    int cellX = (Mouse.getX() / cellWidth);
+    int cellY = (WINDOW_HEIGHT - Mouse.getY()) / cellWidth;
+    int originX = cellX * cellWidth + H_OFFSET;
+    int originY = cellY * cellWidth + V_OFFSET;
+      
+    if(cellX < size && cellY < size) {
+    
+      // Removes the rendering lag (fade effect)
+      glDisable(GL_TEXTURE_2D);
+        
+      // Restore the old cell
+      glColor3f(1.0f, 1.0f, 1.0f);
+      glBegin(GL_QUADS);
+      glVertex2f(oldOriginX, oldOriginY);
+      glVertex2f(oldOriginX + cellWidth, oldOriginY);
+      glVertex2f(oldOriginX + cellWidth, oldOriginY + cellWidth);
+      glVertex2f(oldOriginX, oldOriginY + cellWidth);
+      glEnd();
+      
+      // Highlight the new cell
+      glColor3f(0.5f, 0.0f, 0.0f);
       glBegin(GL_QUADS);
       glVertex2f(originX, originY);
       glVertex2f(originX + cellWidth, originY);
       glVertex2f(originX + cellWidth, originY + cellWidth);
       glVertex2f(originX, originY + cellWidth);
       glEnd();
-    }
-
-    int charCode;
-    while (Keyboard.next()) {
-      charCode = Keyboard.getEventKey();
-      if (charCode <= 11) {
+      
+      // Restore input
+      if(inputGrid.get(oldCellX).get(oldCellY) >= 0)
+      {
+        input.drawString(oldOriginX + NUMBER_OFFSET_X, oldOriginY + NUMBER_OFFSET_Y,
+          Integer.toString(inputGrid.get(oldCellX).get(oldCellY)), Color.black);
+      }
+          
+      if(inputGrid.get(cellX).get(cellY) >= 0)
+      {
         input.drawString(originX + NUMBER_OFFSET_X, originY + NUMBER_OFFSET_Y,
-          Integer.toString((charCode - 1) % 10));
+          Integer.toString(inputGrid.get(cellX).get(cellY)), Color.black);
+      }
+      
+      // Restore hints if necessary
+      if(cellHasClue.get(oldCellX).get(oldCellY))
+      {
+        cageOperation.drawString(H_OFFSET + OPERATION_OFFSET + cellWidth * oldCellX,
+          V_OFFSET + OPERATION_OFFSET + cellWidth * oldCellY, "Hi", Color.black);
+      }
+      
+      if(cellHasClue.get(cellX).get(cellY))
+      {
+        cageOperation.drawString(H_OFFSET + OPERATION_OFFSET + cellWidth * cellX,
+          V_OFFSET + OPERATION_OFFSET + cellWidth * cellY, "Hi", Color.black);
+      }
+      
+      oldCellX = cellX;
+      oldCellY = cellY;
+      oldOriginX = originX;
+      oldOriginY = originY;
+
+      int charCode;
+      while (Keyboard.next()) {
+        charCode = Keyboard.getEventKey();
+        if (charCode <= 11) {
+          input.drawString(originX + NUMBER_OFFSET_X, originY + NUMBER_OFFSET_Y,
+            Integer.toString((charCode - 1) % 10), Color.black);
+          inputGrid.get(cellX).set(cellY, (charCode - 1) % 10);
+        }
       }
     }
   }

@@ -7,7 +7,6 @@ public class Driver {
    */
   public static void main(String[] args) {
     GUI gui = new GUI(new Problem(9));
-    gui.drawProblem(); // TODO Call this from a GUI event instead
     gui.loop();
     gui.destroy();
   }
