@@ -20,6 +20,7 @@ public class GUI {
   // Board constants
   private static final int              WINDOW_WIDTH    = 640;
   private static final int              WINDOW_HEIGHT   = 480;
+  private static final int              BOARD_WIDTH     = WINDOW_HEIGHT - 30;
   private static final float            LINE_WIDTH      = 2.0f;
   private static final int              BOARD_OFFSET_X  = 15;
   private static final int              BOARD_OFFSET_Y  = 15;
@@ -35,39 +36,59 @@ public class GUI {
 
   private static final String           FONT_PATH       = "res/DroidSans.ttf";
 
+  // Problem instance
   private Problem                       problem;
+
+  // Height (or width) of problem in cells
   private int                           size;
+
+  // Pixel width of a cell
   private int                           cellWidth;
+
+  // Number fonts
   private UnicodeFont                   clueFont;
   private UnicodeFont                   entryFont;
+
+  // Matrix of user's cell guesses
+  private ArrayList<ArrayList<Integer>> entryGrid;
+
+  // Records which cells display their cages' clues
+  private ArrayList<ArrayList<Boolean>> cellHasClue;
+
+  // Used for pollInput()
+  private int                           cellX;
+  private int                           cellY;
+  private int                           originX;
+  private int                           originY;
   private int                           oldCellX;
   private int                           oldCellY;
   private int                           oldOriginX;
   private int                           oldOriginY;
-  private ArrayList<ArrayList<Integer>> inputGrid;
-  private ArrayList<ArrayList<Boolean>> cellHasClue;
 
   public GUI(Problem problem) {
     setProblem(problem);
     init();
   }
 
+  /*
+   * Load a new problem instance into the main window.
+   */
   private void setProblem(Problem problem) {
     this.problem = problem;
     this.size = problem.getSize();
-    this.cellWidth = 450 / size;
-    inputGrid = new ArrayList<ArrayList<Integer>>();
+    this.cellWidth = BOARD_WIDTH / size;
+    entryGrid = new ArrayList<ArrayList<Integer>>();
     cellHasClue = new ArrayList<ArrayList<Boolean>>();
     for (int i = 0; i < size; ++i) {
-      inputGrid.add(new ArrayList<Integer>(Collections.nCopies(size, -1)));
+      entryGrid.add(new ArrayList<Integer>(Collections.nCopies(size, -1)));
       cellHasClue.add(new ArrayList<Boolean>(Collections.nCopies(size, false)));
     }
-
   }
 
   /**
    * Initialize LWJGL and create the window.
    */
+  @SuppressWarnings("unchecked")
   private void init() {
     try {
       Display.setDisplayMode(new DisplayMode(WINDOW_WIDTH, WINDOW_HEIGHT));
@@ -91,12 +112,10 @@ public class GUI {
     glEnable(GL_COLOR_MATERIAL);
 
     // Set background color to white
-
     glClearColor(1.0f, 1.0f, 1.0f, 0.0f);
     glClear(GL_COLOR_BUFFER_BIT);
 
     // Line thickness
-
     glLineWidth(LINE_WIDTH);
 
     try {
@@ -167,7 +186,6 @@ public class GUI {
    */
   public void drawProblem() {
     // Draw grid guides
-
     glColor3f(0.9f, 0.9f, 0.9f);
 
     for (int i = 1; i < size; ++i) {
@@ -219,7 +237,7 @@ public class GUI {
       }
     }
 
-    // Draw boundary
+    // Draw board boundaries
 
     glBegin(GL_LINES); // Top
     glVertex2i(BOARD_OFFSET_X, BOARD_OFFSET_Y);
@@ -251,17 +269,17 @@ public class GUI {
   // TODO make the highlighting of the cell cover an area smaller so we don't
   // overwrite the grid lines
   private void pollInput() {
-    int cellX = (Mouse.getX() - BOARD_OFFSET_X) / cellWidth;
-    int cellY = (WINDOW_HEIGHT - Mouse.getY() - BOARD_OFFSET_Y) / cellWidth;
-    int originX = cellX * cellWidth + BOARD_OFFSET_X;
-    int originY = cellY * cellWidth + BOARD_OFFSET_Y;
+    cellX = (Mouse.getX() - BOARD_OFFSET_X) / cellWidth;
+    cellY = (WINDOW_HEIGHT - Mouse.getY() - BOARD_OFFSET_Y) / cellWidth;
+    originX = cellX * cellWidth + BOARD_OFFSET_X;
+    originY = cellY * cellWidth + BOARD_OFFSET_Y;
 
-    if (cellX < size && cellY < size) {
+    if (cellX >= 0 && cellX < size && cellY >= 0 && cellY < size) {
 
       // Removes the rendering lag (fade effect)
       glDisable(GL_TEXTURE_2D);
 
-      // Restore the old cell
+      // Un-highlight the old cell
       glColor3f(1.0f, 1.0f, 1.0f);
       glBegin(GL_QUADS);
       glVertex2f(oldOriginX, oldOriginY);
@@ -271,7 +289,7 @@ public class GUI {
       glEnd();
 
       // Highlight the new cell
-      glColor3f(0.5f, 0.0f, 0.0f);
+      glColor3f(0.9f, 0.9f, 0.9f);
       glBegin(GL_QUADS);
       glVertex2f(originX, originY);
       glVertex2f(originX + cellWidth, originY);
@@ -279,17 +297,17 @@ public class GUI {
       glVertex2f(originX, originY + cellWidth);
       glEnd();
 
-      // Restore entryFont
-      if (inputGrid.get(oldCellX).get(oldCellY) >= 0) {
+      // Restore entry value
+      if (entryGrid.get(oldCellX).get(oldCellY) >= 0) {
         entryFont.drawString(oldOriginX + ENTRY_OFFSET_X, oldOriginY
           + ENTRY_OFFSET_Y,
-          Integer.toString(inputGrid.get(oldCellX).get(oldCellY)), Color.black);
+          Integer.toString(entryGrid.get(oldCellX).get(oldCellY)), Color.black);
       }
 
-      if (inputGrid.get(cellX).get(cellY) >= 0) {
+      if (entryGrid.get(cellX).get(cellY) >= 0) {
         entryFont.drawString(originX + ENTRY_OFFSET_X,
           originY + ENTRY_OFFSET_Y,
-          Integer.toString(inputGrid.get(cellX).get(cellY)), Color.black);
+          Integer.toString(entryGrid.get(cellX).get(cellY)), Color.black);
       }
 
       // Restore hints if necessary
@@ -316,7 +334,7 @@ public class GUI {
           entryFont.drawString(originX + ENTRY_OFFSET_X, originY
             + ENTRY_OFFSET_Y, Integer.toString((charCode - 1) % 10),
             Color.black);
-          inputGrid.get(cellX).set(cellY, (charCode - 1) % 10);
+          entryGrid.get(cellX).set(cellY, (charCode - 1) % 10);
         }
       }
     }
