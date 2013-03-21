@@ -62,9 +62,8 @@ public class GUI {
 
   // Maps clue cells to clue text
   private TreeMap<Integer, String>      clueText;
-  private ArrayList<ArrayList<Boolean>> cellHasClue;
 
-  // Used for pollInput()
+  // Grid indices of the currently hovered cell
   private int                           hoverCellX;
   private int                           hoverCellY;
 
@@ -82,10 +81,8 @@ public class GUI {
     cageIDs = problem.getGrid();
 
     entryGrid = new ArrayList<ArrayList<Integer>>();
-    cellHasClue = new ArrayList<ArrayList<Boolean>>();
     for (int i = 0; i < size; ++i) {
       entryGrid.add(new ArrayList<Integer>(Collections.nCopies(size, -1)));
-      cellHasClue.add(new ArrayList<Boolean>(Collections.nCopies(size, false)));
     }
 
     clueText = new TreeMap<Integer, String>();
@@ -151,14 +148,14 @@ public class GUI {
   /**
    * Constantly refresh the window.
    */
-  public void loop() {
+  public void gameLoop() {
     System.out.println("Main loop starting.");
 
     while (!Display.isCloseRequested()) {
       glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
       Display.sync(60);
       pollInput();
-      drawProblem();
+      renderFrame();
       Display.update();
     }
   }
@@ -176,7 +173,7 @@ public class GUI {
    * 
    * @param problem The problem instance
    */
-  public void drawProblem() {
+  public void renderFrame() {
     // Draw cageIDs guides
     glColor3f(0.925f, 0.925f, 0.925f);
 
@@ -219,27 +216,27 @@ public class GUI {
     // and only if the current cell belongs to a different cage from the
     // previous cell)
     glColor3f(0.0f, 0.0f, 0.0f);
-    int hID = 0;
-    int vID = 0;
+    int leftNeighborID = 0;
+    int topNeighborID = 0;
     for (int i = 0; i < size; ++i) {
       for (int j = 0; j < size; ++j) {
-        if (cageIDs.get(j).get(i) != hID) {
+        if (cageIDs.get(j).get(i) != leftNeighborID) {
           glBegin(GL_LINES);
           glVertex2i(BOARD_OFFSET_X + i * cellWidth, BOARD_OFFSET_Y + cellWidth
             * j);
           glVertex2i(BOARD_OFFSET_X + (i + 1) * cellWidth, BOARD_OFFSET_Y
             + cellWidth * j);
           glEnd();
-          hID = cageIDs.get(j).get(i);
+          leftNeighborID = cageIDs.get(j).get(i);
         }
-        if (cageIDs.get(i).get(j) != vID) {
+        if (cageIDs.get(i).get(j) != topNeighborID) {
           glBegin(GL_LINES);
           glVertex2i(BOARD_OFFSET_X + j * cellWidth, BOARD_OFFSET_Y + cellWidth
             * i);
           glVertex2i(BOARD_OFFSET_X + j * cellWidth, BOARD_OFFSET_Y + cellWidth
             * (i + 1));
           glEnd();
-          vID = cageIDs.get(i).get(j);
+          topNeighborID = cageIDs.get(i).get(j);
         }
       }
     }
@@ -266,6 +263,8 @@ public class GUI {
     glVertex2i(BOARD_OFFSET_X + size * cellWidth, BOARD_OFFSET_Y + cellWidth
       * size);
     glEnd();
+
+    // All fonts must be rendered last!
 
     // Draw clue text
     for (Map.Entry<Integer, String> e : clueText.entrySet()) {
@@ -302,13 +301,10 @@ public class GUI {
         - 1;
 
     // Draw only if mouse is over board
-    if (hoverCellX >= 0 && hoverCellX < size && hoverCellY >= 0
-      && hoverCellY < size) {
-      int charCode;
-      while (Keyboard.next()) {
-        if ((charCode = Keyboard.getEventKey()) <= 11) {
-          entryGrid.get(hoverCellY).set(hoverCellX, (charCode - 1) % 10);
-        }
+    int charCode;
+    while (Keyboard.next()) {
+      if ((charCode = Keyboard.getEventKey()) <= 11) {
+        entryGrid.get(hoverCellY).set(hoverCellX, (charCode - 1) % 10);
       }
     }
   }
