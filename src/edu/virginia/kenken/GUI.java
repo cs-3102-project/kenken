@@ -21,7 +21,7 @@ import org.newdawn.slick.font.effects.ColorEffect;
 public class GUI {
 
   // Board constants
-  private static final int              WINDOW_WIDTH    = 640;
+  private static final int              WINDOW_WIDTH    = 480;
   private static final int              WINDOW_HEIGHT   = 480;
   private static final int              BOARD_WIDTH     = WINDOW_HEIGHT - 30;
   private static final float            LINE_WIDTH      = 2.0f;
@@ -29,7 +29,8 @@ public class GUI {
   private static final int              BOARD_OFFSET_Y  = 15;
 
   // Clue constants
-  private static final int              CLUE_OFFSET     = 5;
+  private static final int              CLUE_OFFSET_X   = 3;
+  private static final int              CLUE_OFFSET_Y   = 1;
   private static final int              CLUE_FONT_SIZE  = 12;
 
   // Entry constants
@@ -91,7 +92,7 @@ public class GUI {
 
     clueText = new TreeMap<Integer, String>();
     for (Cage c : problem.getCages()) {
-      clueText.put(c.getCells().get(0), c.getTotal() + "");
+      clueText.put(c.getCells().get(0), c.getClueText() + "");
     }
   }
 
@@ -179,7 +180,7 @@ public class GUI {
    */
   public void drawProblem() {
     // Draw cageIDs guides
-    glColor3f(0.9f, 0.9f, 0.9f);
+    glColor3f(0.925f, 0.925f, 0.925f);
 
     for (int i = 1; i < size; ++i) {
       // Horizontal lines
@@ -253,8 +254,8 @@ public class GUI {
     // Draw clue text
     for (Map.Entry<Integer, String> e : clueText.entrySet()) {
       clueFont.drawString(
-        BOARD_OFFSET_X + CLUE_OFFSET + cellWidth * (e.getKey() % size),
-        BOARD_OFFSET_Y + CLUE_OFFSET + cellWidth * (e.getKey() / size),
+        BOARD_OFFSET_X + CLUE_OFFSET_X + cellWidth * (e.getKey() % size),
+        BOARD_OFFSET_Y + CLUE_OFFSET_Y + cellWidth * (e.getKey() / size),
         e.getValue(), Color.black);
     }
     GL11.glDisable(GL11.GL_TEXTURE_2D);
@@ -308,14 +309,16 @@ public class GUI {
 
       // Restore hints if necessary
       if (cellHasClue.get(oldCellX).get(oldCellY)) {
-        clueFont.drawString(
-          BOARD_OFFSET_X + CLUE_OFFSET + cellWidth * oldCellX, BOARD_OFFSET_Y
-            + CLUE_OFFSET + cellWidth * oldCellY, "Hi", Color.black);
+        clueFont.drawString(BOARD_OFFSET_X + CLUE_OFFSET_X + cellWidth
+          * oldCellX, BOARD_OFFSET_Y + CLUE_OFFSET_Y + cellWidth * oldCellY,
+          "Hi", Color.black);
       }
 
       if (cellHasClue.get(cellX).get(cellY)) {
-        clueFont.drawString(BOARD_OFFSET_X + CLUE_OFFSET + cellWidth * cellX,
-          BOARD_OFFSET_Y + CLUE_OFFSET + cellWidth * cellY, "Hi", Color.black);
+        clueFont
+          .drawString(BOARD_OFFSET_X + CLUE_OFFSET_X + cellWidth * cellX,
+            BOARD_OFFSET_Y + CLUE_OFFSET_Y + cellWidth * cellY, "Hi",
+            Color.black);
       }
 
       oldCellX = cellX;

@@ -7,4 +7,9 @@ public class DivisionCage extends Cage {
     super(src);
     setTotal(Collections.max(getCells()) / Collections.min(getCells()));
   }
+
+  @Override
+  public String getClueText() {
+    return getTotal() + "/";
+  }
 }

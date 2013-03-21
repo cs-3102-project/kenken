@@ -9,4 +9,9 @@ public class MultiplicationCage extends Cage {
     }
     setTotal(product);
   }
+
+  @Override
+  public String getClueText() {
+    return getTotal() + "x";
+  }
 }

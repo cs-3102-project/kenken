@@ -9,4 +9,9 @@ public class AdditionCage extends Cage {
     }
     setTotal(sum);
   }
+
+  @Override
+  public String getClueText() {
+    return getTotal() + "+";
+  }
 }
