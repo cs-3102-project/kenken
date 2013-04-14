@@ -6,12 +6,12 @@ import java.util.Random;
 
 public class Problem {
 
-  private final int                           size;
+  private final int size;
   private final ArrayList<ArrayList<Integer>> grid;
-  private int                                 numCages;
-  private ArrayList<Cage>                     cages;
+  private int numCages;
+  private ArrayList<Cage> cages;
 
-  private final Random                        rand;
+  private final Random rand;
 
   public Problem(int size) {
     this.size = size;
@@ -133,6 +133,7 @@ public class Problem {
       // Add current cell to new cage
       cage = new Cage();
       cage.add(curY * size + curX);
+      cage.addElement(cells.get(curY).get(curX));
       grid.get(curY).set(curX, curID);
       cageSize = 1;
 
@@ -177,6 +178,7 @@ public class Problem {
         // If next cell is valid, add it to cage and move to it
         if (growable && cageSize < maxCageSize) {
           cage.add(nextY * size + nextX);
+          cage.addElement(cells.get(nextY).get(nextX));
           grid.get(nextY).set(nextX, curID);
           curX = nextX;
           curY = nextY;
@@ -187,8 +189,6 @@ public class Problem {
       }
 
       // TODO Add a probabilistic switch to allow cages other than AdditionCage
-      // TODO Change summands from cell IDs (temporary, for testing only) to
-      // actual cell values
       cages.add(new AdditionCage(cage));
 
       sizeDistribution

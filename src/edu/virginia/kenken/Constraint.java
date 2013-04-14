@@ -5,9 +5,11 @@ import java.util.Collections;
 
 public class Constraint {
   private ArrayList<Integer> cells;
+  private ArrayList<Integer> cellElements;
 
   public Constraint() {
     cells = new ArrayList<Integer>();
+    cellElements = new ArrayList<Integer>();
   }
 
   public ArrayList<Integer> getCells() {
@@ -22,4 +24,13 @@ public class Constraint {
     cells.add(cellID);
     Collections.sort(cells);
   }
+
+  public void addElement(Integer cellVal) {
+    cellElements.add(cellVal);
+  }
+
+  public ArrayList<Integer> getCellElements() {
+    return cellElements;
+  }
+
 }
