@@ -25,47 +25,47 @@ import org.newdawn.slick.font.effects.ColorEffect;
 public class GUI {
 
   // Board constants
-  private static final int              WINDOW_WIDTH    = 480;
-  private static final int              WINDOW_HEIGHT   = 480;
-  private static final int              BOARD_WIDTH     = WINDOW_HEIGHT - 30;
-  private static final float            LINE_WIDTH      = 2.0f;
-  private static final int              BOARD_OFFSET_X  = 15;
-  private static final int              BOARD_OFFSET_Y  = 15;
+  private static final int WINDOW_WIDTH = 480;
+  private static final int WINDOW_HEIGHT = 480;
+  private static final int BOARD_WIDTH = WINDOW_HEIGHT - 30;
+  private static final float LINE_WIDTH = 2.0f;
+  private static final int BOARD_OFFSET_X = 15;
+  private static final int BOARD_OFFSET_Y = 15;
 
   // Clue constants
-  private static final int              CLUE_OFFSET_X   = 3;
-  private static final int              CLUE_OFFSET_Y   = 1;
-  private static final int              CLUE_FONT_SIZE  = 12;
+  private static final int CLUE_OFFSET_X = 3;
+  private static final int CLUE_OFFSET_Y = 1;
+  private static final int CLUE_FONT_SIZE = 12;
 
   // Entry constants
-  private static final int              ENTRY_OFFSET_X  = 17;
-  private static final int              ENTRY_OFFSET_Y  = 10;
-  private static final int              ENTRY_FONT_SIZE = 25;
+  private static final int ENTRY_OFFSET_X = 17;
+  private static final int ENTRY_OFFSET_Y = 10;
+  private static final int ENTRY_FONT_SIZE = 25;
 
-  private static final String           FONT_PATH       = "res/DroidSans.ttf";
+  private static final String FONT_PATH = "res/DroidSans.ttf";
 
   // Height (or width) of problem in cells
-  private int                           size;
+  private int size;
 
   // Grid of cage IDs
-  ArrayList<ArrayList<Integer>>         cageIDs;
+  ArrayList<ArrayList<Integer>> cageIDs;
 
   // Pixel width of a cell
-  private int                           cellWidth;
+  private int cellWidth;
 
   // Number fonts
-  private UnicodeFont                   clueFont;
-  private UnicodeFont                   entryFont;
+  private UnicodeFont clueFont;
+  private UnicodeFont entryFont;
 
   // Matrix of user's cell guesses
   private ArrayList<ArrayList<Integer>> entryGrid;
 
   // Maps clue cells to clue text
-  private TreeMap<Integer, String>      clueText;
+  private TreeMap<Integer, String> clueText;
 
   // Grid indices of the currently hovered cell
-  private int                           hoverCellX;
-  private int                           hoverCellY;
+  private int hoverCellX;
+  private int hoverCellY;
 
   public GUI(Problem problem) {
     setProblem(problem);
@@ -301,10 +301,64 @@ public class GUI {
         - 1;
 
     // Draw only if mouse is over board
-    int charCode;
     while (Keyboard.next()) {
-      if ((charCode = Keyboard.getEventKey()) <= 11) {
-        entryGrid.get(hoverCellY).set(hoverCellX, (charCode - 1) % 10);
+      // Discard keydown events
+      if (Keyboard.getEventKeyState()) {
+        continue;
+      }
+      switch (Keyboard.getEventKey()) {
+        case Keyboard.KEY_1:
+        case Keyboard.KEY_NUMPAD1:
+          markCell(1);
+          break;
+        case Keyboard.KEY_2:
+        case Keyboard.KEY_NUMPAD2:
+          markCell(2);
+          break;
+        case Keyboard.KEY_3:
+        case Keyboard.KEY_NUMPAD3:
+          markCell(3);
+          break;
+        case Keyboard.KEY_4:
+        case Keyboard.KEY_NUMPAD4:
+          markCell(4);
+          break;
+        case Keyboard.KEY_5:
+        case Keyboard.KEY_NUMPAD5:
+          markCell(5);
+          break;
+        case Keyboard.KEY_6:
+        case Keyboard.KEY_NUMPAD6:
+          markCell(6);
+          break;
+        case Keyboard.KEY_7:
+        case Keyboard.KEY_NUMPAD7:
+          markCell(7);
+          break;
+        case Keyboard.KEY_8:
+        case Keyboard.KEY_NUMPAD8:
+          markCell(8);
+          break;
+        case Keyboard.KEY_9:
+        case Keyboard.KEY_NUMPAD9:
+          markCell(9);
+          break;
+        default:
+          break;
+      }
+    }
+  }
+
+  private void markCell(int n) {
+    if (Keyboard.isKeyDown(Keyboard.KEY_LSHIFT)
+      || Keyboard.isKeyDown(Keyboard.KEY_RSHIFT)) {
+      // Mark note
+    } else {
+      // Mark entry
+      if (entryGrid.get(hoverCellY).get(hoverCellX) == n) {
+        entryGrid.get(hoverCellY).set(hoverCellX, -1);
+      } else {
+        entryGrid.get(hoverCellY).set(hoverCellX, n);
       }
     }
   }
