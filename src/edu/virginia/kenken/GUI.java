@@ -37,10 +37,10 @@ public class GUI {
   private static final int CLUE_OFFSET_Y = 1;
   private static final int CLUE_FONT_SIZE = 12;
 
-  // Entry constants
-  private static final int ENTRY_OFFSET_X = 17;
-  private static final int ENTRY_OFFSET_Y = 10;
-  private static final int ENTRY_FONT_SIZE = 25;
+  // guess constants
+  private static final int guess_OFFSET_X = 17;
+  private static final int guess_OFFSET_Y = 10;
+  private static final int guess_FONT_SIZE = 25;
 
   private static final String FONT_PATH = "res/DroidSans.ttf";
 
@@ -55,10 +55,10 @@ public class GUI {
 
   // Number fonts
   private UnicodeFont clueFont;
-  private UnicodeFont entryFont;
+  private UnicodeFont guessFont;
 
   // Matrix of user's cell guesses
-  private ArrayList<ArrayList<Integer>> entryGrid;
+  private ArrayList<ArrayList<Integer>> guessGrid;
 
   // Maps clue cells to clue text
   private TreeMap<Integer, String> clueText;
@@ -80,9 +80,9 @@ public class GUI {
     cellWidth = BOARD_WIDTH / size;
     cageIDs = problem.getGrid();
 
-    entryGrid = new ArrayList<ArrayList<Integer>>();
+    guessGrid = new ArrayList<ArrayList<Integer>>();
     for (int i = 0; i < size; ++i) {
-      entryGrid.add(new ArrayList<Integer>(Collections.nCopies(size, -1)));
+      guessGrid.add(new ArrayList<Integer>(Collections.nCopies(size, -1)));
     }
 
     clueText = new TreeMap<Integer, String>();
@@ -131,11 +131,11 @@ public class GUI {
       clueFont.getEffects().add(new ColorEffect());
       clueFont.loadGlyphs();
 
-      entryFont = new UnicodeFont(FONT_PATH, ENTRY_FONT_SIZE, false, false);
-      entryFont.addAsciiGlyphs();
-      entryFont.addGlyphs(400, 600);
-      entryFont.getEffects().add(new ColorEffect());
-      entryFont.loadGlyphs();
+      guessFont = new UnicodeFont(FONT_PATH, guess_FONT_SIZE, false, false);
+      guessFont.addAsciiGlyphs();
+      guessFont.addGlyphs(400, 600);
+      guessFont.getEffects().add(new ColorEffect());
+      guessFont.loadGlyphs();
     } catch (SlickException e) {
       System.out.println("Failed to create font. Exiting.");
       e.printStackTrace();
@@ -268,19 +268,21 @@ public class GUI {
 
     // Draw clue text
     for (Map.Entry<Integer, String> e : clueText.entrySet()) {
+      // TODO Check whether cell contains note and doesn't contain guess; draw
+      // note if so
       clueFont.drawString(
         BOARD_OFFSET_X + CLUE_OFFSET_X + cellWidth * (e.getKey() % size),
         BOARD_OFFSET_Y + CLUE_OFFSET_Y + cellWidth * (e.getKey() / size),
         e.getValue(), Color.darkGray);
     }
 
-    // Draw entry text
+    // Draw guess text
     for (int i = 0; i < size; ++i) {
       for (int j = 0; j < size; ++j) {
-        if (entryGrid.get(i).get(j) > 0) {
-          entryFont.drawString(BOARD_OFFSET_X + j * cellWidth + ENTRY_OFFSET_X,
-            BOARD_OFFSET_Y + i * cellWidth + ENTRY_OFFSET_Y,
-            Integer.toString(entryGrid.get(i).get(j)), Color.black);
+        if (guessGrid.get(i).get(j) > 0) {
+          guessFont.drawString(BOARD_OFFSET_X + j * cellWidth + guess_OFFSET_X,
+            BOARD_OFFSET_Y + i * cellWidth + guess_OFFSET_Y,
+            Integer.toString(guessGrid.get(i).get(j)), Color.black);
         }
       }
     }
@@ -353,12 +355,13 @@ public class GUI {
     if (Keyboard.isKeyDown(Keyboard.KEY_LSHIFT)
       || Keyboard.isKeyDown(Keyboard.KEY_RSHIFT)) {
       // Mark note
+      // TODO Note marking code
     } else {
-      // Mark entry
-      if (entryGrid.get(hoverCellY).get(hoverCellX) == n) {
-        entryGrid.get(hoverCellY).set(hoverCellX, -1);
+      // Mark guess
+      if (guessGrid.get(hoverCellY).get(hoverCellX) == n) {
+        guessGrid.get(hoverCellY).set(hoverCellX, -1);
       } else {
-        entryGrid.get(hoverCellY).set(hoverCellX, n);
+        guessGrid.get(hoverCellY).set(hoverCellX, n);
       }
     }
   }
