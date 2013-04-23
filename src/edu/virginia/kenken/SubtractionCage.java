@@ -5,7 +5,8 @@ import java.util.Collections;
 public class SubtractionCage extends Cage {
   public SubtractionCage(Cage src) {
     super(src);
-    setTotal(Collections.max(getCells()) - Collections.min(getCells()));
+    setTotal(Collections.max(src.getCellElements())
+      - Collections.min(src.getCellElements()));
   }
 
   @Override
