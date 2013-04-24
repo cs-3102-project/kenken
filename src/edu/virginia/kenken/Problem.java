@@ -212,7 +212,11 @@ public class Problem {
             break;
         }
       } else {
-        cages.add(new AdditionCage(cage));
+        if (rand.nextBoolean()) {
+          cages.add(new MultiplicationCage(cage));
+        } else {
+          cages.add(new AdditionCage(cage));
+        }
       }
 
       sizeDistribution

@@ -4,7 +4,7 @@ public class MultiplicationCage extends Cage {
   public MultiplicationCage(Cage src) {
     super(src);
     int product = 1;
-    for (Integer d : getCells()) {
+    for (Integer d : src.getCellElements()) {
       product *= d;
     }
     setTotal(product);
