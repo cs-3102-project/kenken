@@ -189,34 +189,40 @@ public class Problem {
       }
 
       // TODO Add a probabilistic switch to allow cages other than AdditionCage
-      if (cage.getCells().size() == 2) {
-        switch (rand.nextInt(3)) {
-        // Subtraction
-          case 0:
-            cages.add(new SubtractionCage(cage));
-            break;
-          // Division
-          case 1:
-            cages.add(new ModuloCage(cage));
-            break;
+      switch (cage.getCells().size()) {
+        case 1:
+          cages.add(new UnitCage(cage));
+          break;
+        case 2:
+          switch (rand.nextInt(3)) {
+          // Subtraction
+            case 0:
+              cages.add(new SubtractionCage(cage));
+              break;
+            // Division
+            case 1:
+              cages.add(new ModuloCage(cage));
+              break;
 
-          // Modulus
-          case 2:
-            cages.add(new DivisionCage(cage));
-            break;
+            // Modulus
+            case 2:
+              cages.add(new DivisionCage(cage));
+              break;
 
-          // Random number generator is broken
-          default:
-            System.out
-              .println("The random number generator broke when randomly selecting binary operators.");
-            break;
-        }
-      } else {
-        if (rand.nextBoolean()) {
-          cages.add(new MultiplicationCage(cage));
-        } else {
-          cages.add(new AdditionCage(cage));
-        }
+            // Random number generator is broken
+            default:
+              System.out
+                .println("The random number generator broke when randomly selecting binary operators.");
+              break;
+          }
+          break;
+        default:
+          if (rand.nextBoolean()) {
+            cages.add(new MultiplicationCage(cage));
+          } else {
+            cages.add(new AdditionCage(cage));
+          }
+          break;
       }
 
       sizeDistribution
