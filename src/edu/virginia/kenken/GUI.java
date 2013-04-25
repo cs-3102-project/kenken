@@ -1,34 +1,6 @@
 package edu.virginia.kenken;
 
-import static org.lwjgl.opengl.GL11.GL_BLEND;
-import static org.lwjgl.opengl.GL11.GL_COLOR_BUFFER_BIT;
-import static org.lwjgl.opengl.GL11.GL_COLOR_MATERIAL;
-import static org.lwjgl.opengl.GL11.GL_DEPTH_BUFFER_BIT;
-import static org.lwjgl.opengl.GL11.GL_DEPTH_TEST;
-import static org.lwjgl.opengl.GL11.GL_LIGHTING;
-import static org.lwjgl.opengl.GL11.GL_LINES;
-import static org.lwjgl.opengl.GL11.GL_MODELVIEW;
-import static org.lwjgl.opengl.GL11.GL_ONE_MINUS_SRC_ALPHA;
-import static org.lwjgl.opengl.GL11.GL_PROJECTION;
-import static org.lwjgl.opengl.GL11.GL_QUADS;
-import static org.lwjgl.opengl.GL11.GL_SMOOTH;
-import static org.lwjgl.opengl.GL11.GL_SRC_ALPHA;
-import static org.lwjgl.opengl.GL11.GL_TEXTURE_2D;
-import static org.lwjgl.opengl.GL11.glBegin;
-import static org.lwjgl.opengl.GL11.glBlendFunc;
-import static org.lwjgl.opengl.GL11.glClear;
-import static org.lwjgl.opengl.GL11.glClearColor;
-import static org.lwjgl.opengl.GL11.glColor3f;
-import static org.lwjgl.opengl.GL11.glDisable;
-import static org.lwjgl.opengl.GL11.glEnable;
-import static org.lwjgl.opengl.GL11.glEnd;
-import static org.lwjgl.opengl.GL11.glLineWidth;
-import static org.lwjgl.opengl.GL11.glLoadIdentity;
-import static org.lwjgl.opengl.GL11.glMatrixMode;
-import static org.lwjgl.opengl.GL11.glOrtho;
-import static org.lwjgl.opengl.GL11.glShadeModel;
-import static org.lwjgl.opengl.GL11.glVertex2f;
-import static org.lwjgl.opengl.GL11.glVertex2i;
+import static org.lwjgl.opengl.GL11.*;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -65,10 +37,15 @@ public class GUI {
   private static final int CLUE_OFFSET_Y = 1;
   private static final int CLUE_FONT_SIZE = 12;
 
-  // guess constants
-  private static final int guess_OFFSET_X = 17;
-  private static final int guess_OFFSET_Y = 10;
-  private static final int guess_FONT_SIZE = 25;
+  // Guess constants
+  private static final int GUESS_OFFSET_X = 17;
+  private static final int GUESS_OFFSET_Y = 10;
+  private static final int GUESS_FONT_SIZE = 25;
+
+  // Note constants
+  private static final int NOTE_OFFSET_X = 10;
+  private static final int NOTE_OFFSET_Y = 15;
+  private static final int NOTE_FONT_SIZE = 10;
 
   private static final String FONT_PATH = "res/DroidSans.ttf";
 
@@ -84,9 +61,13 @@ public class GUI {
   // Number fonts
   private UnicodeFont clueFont;
   private UnicodeFont guessFont;
+  private UnicodeFont noteFont;
 
   // Matrix of user's cell guesses
   private ArrayList<ArrayList<Integer>> guessGrid;
+
+  // Matrix of user's cell notes
+  private ArrayList<ArrayList<ArrayList<Boolean>>> noteGrid;
 
   // Maps clue cells to clue text
   private TreeMap<Integer, String> clueText;
@@ -94,6 +75,9 @@ public class GUI {
   // Grid indices of the currently hovered cell
   private int hoverCellX;
   private int hoverCellY;
+
+  // Whether entry mode is "guess" or "note"
+  private boolean inGuessMode;
 
   public GUI(Problem problem) {
     setProblem(problem);
@@ -109,14 +93,22 @@ public class GUI {
     cageIDs = problem.getGrid();
 
     guessGrid = new ArrayList<ArrayList<Integer>>();
+    noteGrid = new ArrayList<ArrayList<ArrayList<Boolean>>>();
     for (int i = 0; i < size; ++i) {
       guessGrid.add(new ArrayList<Integer>(Collections.nCopies(size, -1)));
+      noteGrid.add(new ArrayList<ArrayList<Boolean>>());
+      for (int j = 0; j < size; ++j) {
+        noteGrid.get(i).add(
+          new ArrayList<Boolean>(Collections.nCopies(size, false)));
+      }
     }
 
     clueText = new TreeMap<Integer, String>();
     for (Cage c : problem.getCages()) {
       clueText.put(c.getCells().get(0), c.getClueText() + "");
     }
+
+    inGuessMode = true;
   }
 
   /**
@@ -159,11 +151,17 @@ public class GUI {
       clueFont.getEffects().add(new ColorEffect());
       clueFont.loadGlyphs();
 
-      guessFont = new UnicodeFont(FONT_PATH, guess_FONT_SIZE, false, false);
+      guessFont = new UnicodeFont(FONT_PATH, GUESS_FONT_SIZE, false, false);
       guessFont.addAsciiGlyphs();
       guessFont.addGlyphs(400, 600);
       guessFont.getEffects().add(new ColorEffect());
       guessFont.loadGlyphs();
+
+      noteFont = new UnicodeFont(FONT_PATH, NOTE_FONT_SIZE, false, false);
+      noteFont.addAsciiGlyphs();
+      noteFont.addGlyphs(400, 600);
+      noteFont.getEffects().add(new ColorEffect());
+      noteFont.loadGlyphs();
     } catch (SlickException e) {
       System.out.println("Failed to create font. Exiting.");
       e.printStackTrace();
@@ -305,13 +303,22 @@ public class GUI {
         e.getValue(), Color.darkGray);
     }
 
-    // Draw guess text
+    // Draw guess text and note text
     for (int i = 0; i < size; ++i) {
       for (int j = 0; j < size; ++j) {
         if (guessGrid.get(i).get(j) > 0) {
-          guessFont.drawString(BOARD_OFFSET_X + j * cellWidth + guess_OFFSET_X,
-            BOARD_OFFSET_Y + i * cellWidth + guess_OFFSET_Y,
+          guessFont.drawString(BOARD_OFFSET_X + j * cellWidth + GUESS_OFFSET_X,
+            BOARD_OFFSET_Y + i * cellWidth + GUESS_OFFSET_Y,
             Integer.toString(guessGrid.get(i).get(j)), Color.black);
+        } else {
+          for (int k = 0; k < size; ++k) {
+            if (noteGrid.get(i).get(j).get(k)) {
+              noteFont.drawString(BOARD_OFFSET_X + j * cellWidth
+                + NOTE_OFFSET_X + 12 * (k % 3), BOARD_OFFSET_Y + i * cellWidth
+                + NOTE_OFFSET_Y + 10 * (2 - k / 3), Integer.toString(k + 1),
+                Color.gray);
+            }
+          }
         }
       }
     }
@@ -338,6 +345,10 @@ public class GUI {
         continue;
       }
       switch (Keyboard.getEventKey()) {
+        case Keyboard.KEY_LSHIFT:
+        case Keyboard.KEY_RSHIFT:
+          inGuessMode = !inGuessMode;
+          break;
         case Keyboard.KEY_1:
         case Keyboard.KEY_NUMPAD1:
           markCell(1);
@@ -381,16 +392,22 @@ public class GUI {
   }
 
   private void markCell(int n) {
-    if (Keyboard.isKeyDown(Keyboard.KEY_LSHIFT)
-      || Keyboard.isKeyDown(Keyboard.KEY_RSHIFT)) {
-      // Mark note
-      // TODO Note marking code
-    } else {
-      // Mark guess
-      if (guessGrid.get(hoverCellY).get(hoverCellX) == n) {
-        guessGrid.get(hoverCellY).set(hoverCellX, -1);
+    if (hoverCellX >= 0 && hoverCellX < size && hoverCellY >= 0
+      && hoverCellY < size) {
+      if (inGuessMode) {
+        // Mark guess
+        if (guessGrid.get(hoverCellY).get(hoverCellX) == n) {
+          guessGrid.get(hoverCellY).set(hoverCellX, -1);
+        } else {
+          guessGrid.get(hoverCellY).set(hoverCellX, n);
+        }
       } else {
-        guessGrid.get(hoverCellY).set(hoverCellX, n);
+        // Mark note
+        if (noteGrid.get(hoverCellY).get(hoverCellX).get(n - 1)) {
+          noteGrid.get(hoverCellY).get(hoverCellX).set(n - 1, false);
+        } else {
+          noteGrid.get(hoverCellY).get(hoverCellX).set(n - 1, true);
+        }
       }
     }
   }

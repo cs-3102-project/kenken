@@ -79,7 +79,8 @@ public class Problem {
 
     int cageSize;
     int maxCageSize = -1;
-    float cutoff;
+    float cageCutoff;
+    float opCutoff;
 
     boolean boardFull;
     boolean growable;
@@ -119,12 +120,12 @@ public class Problem {
 
       // Predetermine the maximum number of cells this cage will contain,
       // assuming nothing gets in the way of its growth
-      cutoff = rand.nextFloat();
-      if (cutoff < 0.05) {
+      cageCutoff = rand.nextFloat();
+      if (cageCutoff < 0.07) {
         maxCageSize = 1;
-      } else if (cutoff < 0.45) {
+      } else if (cageCutoff < 0.55) {
         maxCageSize = 2;
-      } else if (cutoff < 0.80) {
+      } else if (cageCutoff < 0.9) {
         maxCageSize = 3;
       } else {
         maxCageSize = 4;
@@ -188,40 +189,31 @@ public class Problem {
         }
       }
 
-      // TODO Add a probabilistic switch to allow cages other than AdditionCage
+      // Assign operator to cage
       switch (cage.getCells().size()) {
         case 1:
           cages.add(new UnitCage(cage));
           break;
         case 2:
-          switch (rand.nextInt(3)) {
-          // Subtraction
-            case 0:
-              cages.add(new SubtractionCage(cage));
-              break;
-            // Division
-            case 1:
+          // TODO Make modulo/division fairer
+          opCutoff = rand.nextFloat();
+          if (opCutoff < 0.3) {
+            cages.add(new SubtractionCage(cage));
+          } else if (opCutoff < 0.6) {
+            cages.add(new AdditionCage(cage));
+          } else if (opCutoff < 1) {
+            cages.add(new MultiplicationCage(cage));
+          } else {
+            if (rand.nextBoolean()) {
               cages.add(new ModuloCage(cage));
-              break;
-
-            // Modulus
-            case 2:
+            } else {
               cages.add(new DivisionCage(cage));
-              break;
-
-            // Random number generator is broken
-            default:
-              System.out
-                .println("The random number generator broke when randomly selecting binary operators.");
-              break;
+            }
           }
           break;
         default:
-          if (rand.nextBoolean()) {
-            cages.add(new MultiplicationCage(cage));
-          } else {
-            cages.add(new AdditionCage(cage));
-          }
+          cages.add(rand.nextBoolean() ? new MultiplicationCage(cage)
+            : new AdditionCage(cage));
           break;
       }
 
