@@ -12,6 +12,7 @@ public class Cage extends Constraint {
   public Cage(Cage src) {
     super();
     setCells(src.getCells());
+    setCellPositions(src.getCellPositions());
   }
 
   public String getClueText() {

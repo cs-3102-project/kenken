@@ -21,6 +21,10 @@ public class Constraint {
     this.cells = cells;
   }
 
+  public void setCellPositions(ArrayList<Integer> cellPositions) {
+    this.cellPositions = cellPositions;
+  }
+
   public void add(Integer cellID) {
     cells.add(cellID);
   }
