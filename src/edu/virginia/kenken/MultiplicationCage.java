@@ -17,11 +17,12 @@ public class MultiplicationCage extends Cage {
     return getTotal() + "x";
   }
 
-  public boolean isSatisifed(ArrayList<ArrayList<Integer>> entryGrid) {
+  public boolean isSatisfied(ArrayList<ArrayList<Integer>> entryGrid) {
     int guessProduct = 1;
-    for (int i = 0; i < getCellsPositions().size() / 2; i = i + 2) {
+    for (int i = 0; i < getCellPositions().size() / 2; i = i + 2) {
       guessProduct *=
-        entryGrid.get(getCellsPositions().get(i)).get(getCellsPositions().get(i + 1));
+        entryGrid.get(getCellPositions().get(i)).get(
+          getCellPositions().get(i + 1));
     }
     if (guessProduct == getTotal()) {
       return true;

@@ -19,8 +19,10 @@ public class AdditionCage extends Cage {
 
   public boolean isSatisifed(ArrayList<ArrayList<Integer>> entryGrid) {
     int guessSum = 0;
-    for (int i = 0; i < getCellsPositions().size() / 2; i = i + 2) {
-      guessSum += entryGrid.get(getCellsPositions().get(i)).get(getCellsPositions().get(i + 1));
+    for (int i = 0; i < getCellPositions().size() / 2; i = i + 2) {
+      guessSum +=
+        entryGrid.get(getCellPositions().get(i)).get(
+          getCellPositions().get(i + 1));
     }
     if (guessSum == getTotal()) {
       return true;

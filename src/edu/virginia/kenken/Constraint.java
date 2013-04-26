@@ -2,7 +2,7 @@ package edu.virginia.kenken;
 
 import java.util.ArrayList;
 
-public abstract class Constraint {
+public class Constraint {
   private ArrayList<Integer> cells;
   private ArrayList<Integer> cellElements;
   private ArrayList<Integer> cellPositions;
@@ -13,7 +13,7 @@ public abstract class Constraint {
     cellPositions = new ArrayList<Integer>();
   }
 
-  public ArrayList<Integer> getCellsPositions() {
+  public ArrayList<Integer> getCells() {
     return cells;
   }
 
@@ -41,7 +41,5 @@ public abstract class Constraint {
   public ArrayList<Integer> getCellPositions() {
     return cellPositions;
   }
-
-  abstract boolean isSatisfied(ArrayList<ArrayList<Integer>> entryGrid);
 
 }

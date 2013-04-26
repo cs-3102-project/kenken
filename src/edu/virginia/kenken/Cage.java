@@ -11,7 +11,7 @@ public class Cage extends Constraint {
 
   public Cage(Cage src) {
     super();
-    setCells(src.getCellsPositions());
+    setCells(src.getCells());
   }
 
   public String getClueText() {
@@ -26,7 +26,7 @@ public class Cage extends Constraint {
     this.total = total;
   }
 
-  boolean isSatisfied(ArrayList<ArrayList<Integer>> entryGrid) {
+  public boolean isSatisfied(ArrayList<ArrayList<Integer>> entryGrid) {
     return true;
   }
 }

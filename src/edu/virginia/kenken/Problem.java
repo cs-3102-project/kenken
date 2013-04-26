@@ -195,7 +195,7 @@ public class Problem {
       }
 
       // Assign operator to cage
-      switch (cage.getCellsPositions().size()) {
+      switch (cage.getCells().size()) {
         case 1:
           cages.add(new UnitCage(cage));
           break;

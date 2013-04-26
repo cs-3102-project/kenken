@@ -20,7 +20,7 @@ public class Solver {
     }
 
     // Use the same shuffling algorithm that was used to create legal grids
-    while (!problem.checkGrid(solution)) {
+    do {
       for (int i = 0; i < problem.getSize(); ++i) {
         solution.add(new ArrayList<Integer>());
         for (int j = 0; j < problem.getSize(); ++j) {
@@ -46,6 +46,13 @@ public class Solver {
       // Shuffle rows (which were the columns before transposition) again
 
       Collections.shuffle(solution);
+    } while (!problem.checkGrid(solution));
+
+    for (int i = 0; i < problem.getSize(); ++i) {
+      for (int j = 0; j < problem.getSize(); ++j) {
+        System.out.print(solution);
+      }
+      System.out.print("\n");
     }
     isSolved = true;
   }

@@ -15,11 +15,13 @@ public class SubtractionCage extends Cage {
     return getTotal() + "-";
   }
 
-  public boolean isSatisifed(ArrayList<ArrayList<Integer>> entryGrid) {
+  public boolean isSatisfied(ArrayList<ArrayList<Integer>> entryGrid) {
 
     int guessDifference =
-      Math.abs(entryGrid.get(getCellsPositions().get(0)).get(getCellsPositions().get(1))
-        - entryGrid.get(getCellsPositions().get(2)).get(getCellsPositions().get(3)));
+      Math.abs(entryGrid.get(getCellPositions().get(0)).get(
+        getCellPositions().get(1))
+        - entryGrid.get(getCellPositions().get(2)).get(
+          getCellPositions().get(3)));
 
     if (guessDifference == getTotal()) {
       return true;
