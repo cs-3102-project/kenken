@@ -1,34 +1,6 @@
 package edu.virginia.kenken;
 
-import static org.lwjgl.opengl.GL11.GL_BLEND;
-import static org.lwjgl.opengl.GL11.GL_COLOR_BUFFER_BIT;
-import static org.lwjgl.opengl.GL11.GL_COLOR_MATERIAL;
-import static org.lwjgl.opengl.GL11.GL_DEPTH_BUFFER_BIT;
-import static org.lwjgl.opengl.GL11.GL_DEPTH_TEST;
-import static org.lwjgl.opengl.GL11.GL_LIGHTING;
-import static org.lwjgl.opengl.GL11.GL_LINES;
-import static org.lwjgl.opengl.GL11.GL_MODELVIEW;
-import static org.lwjgl.opengl.GL11.GL_ONE_MINUS_SRC_ALPHA;
-import static org.lwjgl.opengl.GL11.GL_PROJECTION;
-import static org.lwjgl.opengl.GL11.GL_QUADS;
-import static org.lwjgl.opengl.GL11.GL_SMOOTH;
-import static org.lwjgl.opengl.GL11.GL_SRC_ALPHA;
-import static org.lwjgl.opengl.GL11.GL_TEXTURE_2D;
-import static org.lwjgl.opengl.GL11.glBegin;
-import static org.lwjgl.opengl.GL11.glBlendFunc;
-import static org.lwjgl.opengl.GL11.glClear;
-import static org.lwjgl.opengl.GL11.glClearColor;
-import static org.lwjgl.opengl.GL11.glColor3f;
-import static org.lwjgl.opengl.GL11.glDisable;
-import static org.lwjgl.opengl.GL11.glEnable;
-import static org.lwjgl.opengl.GL11.glEnd;
-import static org.lwjgl.opengl.GL11.glLineWidth;
-import static org.lwjgl.opengl.GL11.glLoadIdentity;
-import static org.lwjgl.opengl.GL11.glMatrixMode;
-import static org.lwjgl.opengl.GL11.glOrtho;
-import static org.lwjgl.opengl.GL11.glShadeModel;
-import static org.lwjgl.opengl.GL11.glVertex2f;
-import static org.lwjgl.opengl.GL11.glVertex2i;
+import static org.lwjgl.opengl.GL11.*;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -253,7 +225,11 @@ public class GUI {
       && hoverCellY < size) {
       // Highlight the new cell
       // TODO replace GL_QUADS with GL_TRIANGLEs
-      glColor3f(0.9f, 0.9f, 0.9f);
+      if (inGuessMode) {
+        glColor3f(0.8f, 0.8f, 0.8f);
+      } else {
+        glColor3f(0.7f, 0.7f, 1.0f);
+      }
       glBegin(GL_QUADS);
       glVertex2f(BOARD_OFFSET_X + hoverCellX * cellWidth, BOARD_OFFSET_Y
         + hoverCellY * cellWidth);
@@ -344,7 +320,7 @@ public class GUI {
               noteFont.drawString(BOARD_OFFSET_X + j * cellWidth
                 + NOTE_OFFSET_X + 12 * (k % 3), BOARD_OFFSET_Y + i * cellWidth
                 + NOTE_OFFSET_Y + 10 * (2 - k / 3), Integer.toString(k + 1),
-                Color.gray);
+                Color.blue);
             }
           }
         }
@@ -373,10 +349,6 @@ public class GUI {
         continue;
       }
       switch (Keyboard.getEventKey()) {
-        case Keyboard.KEY_LSHIFT:
-        case Keyboard.KEY_RSHIFT:
-          inGuessMode = !inGuessMode;
-          break;
         case Keyboard.KEY_1:
         case Keyboard.KEY_NUMPAD1:
           markCell(1);
@@ -414,6 +386,7 @@ public class GUI {
           markCell(9);
           break;
         default:
+          inGuessMode = !inGuessMode;
           break;
       }
     }

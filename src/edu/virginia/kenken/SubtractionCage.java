@@ -15,18 +15,12 @@ public class SubtractionCage extends Cage {
     return getTotal() + "-";
   }
 
+  @Override
   public boolean isSatisfied(ArrayList<ArrayList<Integer>> entryGrid) {
-
-    int guessDifference =
-      Math.abs(entryGrid.get(getCellPositions().get(0)).get(
+    return (Math
+      .abs(entryGrid.get(getCellPositions().get(0)).get(
         getCellPositions().get(1))
         - entryGrid.get(getCellPositions().get(2)).get(
-          getCellPositions().get(3)));
-
-    if (guessDifference == getTotal()) {
-      return true;
-    } else {
-      return false;
-    }
+          getCellPositions().get(3))) == getTotal());
   }
 }

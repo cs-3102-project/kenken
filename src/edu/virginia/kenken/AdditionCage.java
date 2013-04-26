@@ -24,10 +24,6 @@ public class AdditionCage extends Cage {
         entryGrid.get(getCellPositions().get(i)).get(
           getCellPositions().get(i + 1));
     }
-    if (guessSum == getTotal()) {
-      return true;
-    } else {
-      return false;
-    }
+    return (guessSum == getTotal());
   }
 }

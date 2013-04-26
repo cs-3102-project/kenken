@@ -17,6 +17,7 @@ public class MultiplicationCage extends Cage {
     return getTotal() + "x";
   }
 
+  @Override
   public boolean isSatisfied(ArrayList<ArrayList<Integer>> entryGrid) {
     int guessProduct = 1;
     for (int i = 0; i < getCellPositions().size() / 2; i = i + 2) {
@@ -24,10 +25,6 @@ public class MultiplicationCage extends Cage {
         entryGrid.get(getCellPositions().get(i)).get(
           getCellPositions().get(i + 1));
     }
-    if (guessProduct == getTotal()) {
-      return true;
-    } else {
-      return false;
-    }
+    return (guessProduct == getTotal());
   }
 }
