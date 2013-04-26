@@ -105,7 +105,7 @@ public class GUI {
 
     clueText = new TreeMap<Integer, String>();
     for (Cage c : problem.getCages()) {
-      clueText.put(c.getCells().get(0), c.getClueText() + "");
+      clueText.put(c.getCellsPositions().get(0), c.getClueText() + "");
     }
 
     inGuessMode = true;

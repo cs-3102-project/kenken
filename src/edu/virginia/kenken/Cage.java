@@ -1,5 +1,7 @@
 package edu.virginia.kenken;
 
+import java.util.ArrayList;
+
 public class Cage extends Constraint {
   private int total;
 
@@ -9,7 +11,7 @@ public class Cage extends Constraint {
 
   public Cage(Cage src) {
     super();
-    setCells(src.getCells());
+    setCells(src.getCellsPositions());
   }
 
   public String getClueText() {
@@ -22,5 +24,9 @@ public class Cage extends Constraint {
 
   public void setTotal(int total) {
     this.total = total;
+  }
+
+  boolean isSatisfied(ArrayList<ArrayList<Integer>> entryGrid) {
+    return true;
   }
 }

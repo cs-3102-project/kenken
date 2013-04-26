@@ -133,7 +133,11 @@ public class Problem {
 
       // Add current cell to new cage
       cage = new Cage();
+
+      // Add method is used for positioning of the cells based on ID. Do not
+      // change!
       cage.add(curY * size + curX);
+      cage.addPosition(curX, curY);
       cage.addElement(cells.get(curY).get(curX));
       grid.get(curY).set(curX, curID);
       cageSize = 1;
@@ -179,6 +183,7 @@ public class Problem {
         // If next cell is valid, add it to cage and move to it
         if (growable && cageSize < maxCageSize) {
           cage.add(nextY * size + nextX);
+          cage.addPosition(nextX, nextY);
           cage.addElement(cells.get(nextY).get(nextX));
           grid.get(nextY).set(nextX, curID);
           curX = nextX;
@@ -190,7 +195,7 @@ public class Problem {
       }
 
       // Assign operator to cage
-      switch (cage.getCells().size()) {
+      switch (cage.getCellsPositions().size()) {
         case 1:
           cages.add(new UnitCage(cage));
           break;
@@ -244,4 +249,11 @@ public class Problem {
     return cages;
   }
 
+  public boolean checkGrid(ArrayList<ArrayList<Integer>> gridToCheck) {
+    for (Cage c : cages) {
+      if (!c.isSatisfied(gridToCheck))
+        return false;
+    }
+    return true;
+  }
 }
