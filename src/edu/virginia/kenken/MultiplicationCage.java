@@ -20,7 +20,7 @@ public class MultiplicationCage extends Cage {
   @Override
   public boolean isSatisfied(ArrayList<ArrayList<Integer>> entryGrid) {
     int guessProduct = 1;
-    for (int i = 0; i < getCellPositions().size() / 2; i = i + 2) {
+    for (int i = 0; i < getCellPositions().size(); i = i + 2) {
       guessProduct *=
         entryGrid.get(getCellPositions().get(i)).get(
           getCellPositions().get(i + 1));

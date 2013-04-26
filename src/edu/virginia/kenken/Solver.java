@@ -58,7 +58,6 @@ public class Solver {
       }
 
       // Shuffle rows (which were the columns before transposition) again
-      Collections.shuffle(solution);
     }
 
     for (int i = 0; i < problem.getSize(); ++i) {
