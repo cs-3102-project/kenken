@@ -17,7 +17,8 @@ public class AdditionCage extends Cage {
     return getTotal() + "+";
   }
 
-  public boolean isSatisifed(ArrayList<ArrayList<Integer>> entryGrid) {
+  @Override
+  public boolean isSatisfied(ArrayList<ArrayList<Integer>> entryGrid) {
     int guessSum = 0;
     for (int i = 0; i < getCellPositions().size(); i = i + 2) {
       guessSum +=

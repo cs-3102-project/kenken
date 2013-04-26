@@ -1,72 +1,84 @@
 package edu.virginia.kenken;
 
 import java.util.ArrayList;
-import java.util.Collections;
 
 public class Solver {
   private static final int ATTEMPTS_PER_MINUTE = 40000000;
 
   private final Problem problem;
-  private final ArrayList<ArrayList<Integer>> solution;
-  private boolean isSolved;
+  private ArrayList<ArrayList<Integer>> solution;
+  private final int size;
 
   public Solver(Problem problem) {
     this.problem = problem;
+    size = problem.getSize();
     solution = new ArrayList<ArrayList<Integer>>();
   }
 
   public void solveBruteForce() {
-    if (isSolved) {
+    if (solution.size() > 0) {
       System.out.println("The board has already been solved.");
       return;
     }
 
+    ArrayList<ArrayList<Integer>> attempt = new ArrayList<ArrayList<Integer>>();
+    ArrayList<ArrayList<Integer>> template =
+      new ArrayList<ArrayList<Integer>>();
+
     // Start with a legal, non-random board
-    for (int i = 0; i < problem.getSize(); ++i) {
-      solution.add(new ArrayList<Integer>());
-      for (int j = 0; j < problem.getSize(); ++j) {
-        solution.get(i).add((i + j) % problem.getSize() + 1);
+    ArrayList<Integer> rowPermutation = new ArrayList<Integer>();
+    ArrayList<Integer> colPermutation = new ArrayList<Integer>();
+    for (int i = 0; i < size; ++i) {
+      rowPermutation.add(i + 1);
+      colPermutation.add(i + 1);
+      attempt.add(new ArrayList<Integer>());
+      template.add(new ArrayList<Integer>());
+      for (int j = 0; j < size; ++j) {
+        attempt.get(i).add((i + j) % size + 1);
+        template.get(i).add((i + j) % size + 1);
       }
     }
 
     int factorial = 1;
-    for (int i = 2; i <= problem.getSize(); ++i) {
+    for (int i = 2; i <= size; ++i) {
       factorial *= i;
     }
     long expectedAttempts = (long) (factorial * factorial * 0.5);
     System.out.println("ETA: " + expectedAttempts / ATTEMPTS_PER_MINUTE
       + " minutes (" + expectedAttempts + " attempts)");
     long attempts = 0;
-    while (!problem.checkGrid(solution)) {
+    while (!problem.checkGrid(attempt)) {
       attempts += 1;
       if (attempts % 1000000 == 0) {
         System.out.println("Brute force has made " + attempts / 1000000
           + " million attempts");
       }
 
-      // Shuffle rows
-      Collections.shuffle(solution);
+      // Get next permutations of rows and columns
+      if (!nextPermutation(rowPermutation)) {
+        rowPermutation = new ArrayList<Integer>();
+        for (int k = 0; k < size; ++k) {
+          rowPermutation.add(k + 1);
+        }
+        nextPermutation(colPermutation);
+      }
 
-      // Transpose board matrix
-      int tmp;
-      for (int i = 0; i < problem.getSize(); ++i) {
-        for (int j = 0; j < i; ++j) {
-          tmp = solution.get(i).get(j);
-          solution.get(i).set(j, solution.get(j).get(i));
-          solution.get(j).set(i, tmp);
+      // Reassign attempt grid values as specified by permutations
+      for (int i = 0; i < size; ++i) {
+        for (int j = 0; j < size; ++j) {
+          attempt.get(i).set(
+            j,
+            template.get(colPermutation.get(i) - 1).get(
+              rowPermutation.get(j) - 1));
         }
       }
-
-      // Shuffle rows (which were the columns before transposition) again
     }
 
-    for (int i = 0; i < problem.getSize(); ++i) {
-      for (int j = 0; j < problem.getSize(); ++j) {
-        System.out.print(solution);
-      }
-      System.out.print("\n");
+    solution = attempt;
+
+    for (int i = 0; i < size; ++i) {
+      System.out.println(solution.get(i));
     }
-    isSolved = true;
   }
 
   public ArrayList<ArrayList<Integer>> getSolution() {

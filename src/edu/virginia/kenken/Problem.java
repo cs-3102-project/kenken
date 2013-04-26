@@ -8,6 +8,7 @@ public class Problem {
 
   private final int size;
   private final ArrayList<ArrayList<Integer>> grid;
+  ArrayList<ArrayList<Integer>> solution;
   private int numCages;
   private ArrayList<Cage> cages;
 
@@ -20,41 +21,41 @@ public class Problem {
     cages = new ArrayList<Cage>();
     rand = new Random();
 
-    ArrayList<ArrayList<Integer>> cells = new ArrayList<ArrayList<Integer>>();
+    solution = new ArrayList<ArrayList<Integer>>();
 
     // Start with a legal, non-random board
 
     for (int i = 0; i < size; ++i) {
-      cells.add(new ArrayList<Integer>());
+      solution.add(new ArrayList<Integer>());
       for (int j = 0; j < size; ++j) {
-        cells.get(i).add((i + j) % size + 1);
+        solution.get(i).add((i + j) % size + 1);
       }
     }
 
     // Shuffle rows
 
-    Collections.shuffle(cells);
+    Collections.shuffle(solution);
 
     // Transpose board matrix
 
     int tmp;
     for (int i = 0; i < size; ++i) {
       for (int j = 0; j < i; ++j) {
-        tmp = cells.get(i).get(j);
-        cells.get(i).set(j, cells.get(j).get(i));
-        cells.get(j).set(i, tmp);
+        tmp = solution.get(i).get(j);
+        solution.get(i).set(j, solution.get(j).get(i));
+        solution.get(j).set(i, tmp);
       }
     }
 
     // Shuffle rows (which were the columns before transposition) again
 
-    Collections.shuffle(cells);
+    Collections.shuffle(solution);
 
     // Print matrix (for testing only)
 
     for (int i = 0; i < size; ++i) {
       for (int j = 0; j < size; ++j) {
-        System.out.print(cells.get(i).get(j));
+        System.out.print(solution.get(i).get(j));
       }
       System.out.print("\n");
     }
@@ -137,8 +138,8 @@ public class Problem {
       // Add method is used for positioning of the cells based on ID. Do not
       // change!
       cage.add(curY * size + curX);
-      cage.addPosition(curX, curY);
-      cage.addElement(cells.get(curY).get(curX));
+      cage.addPosition(curY, curX);
+      cage.addElement(solution.get(curY).get(curX));
       grid.get(curY).set(curX, curID);
       cageSize = 1;
 
@@ -183,8 +184,8 @@ public class Problem {
         // If next cell is valid, add it to cage and move to it
         if (growable && cageSize < maxCageSize) {
           cage.add(nextY * size + nextX);
-          cage.addPosition(nextX, nextY);
-          cage.addElement(cells.get(nextY).get(nextX));
+          cage.addPosition(nextY, nextX);
+          cage.addElement(solution.get(nextY).get(nextX));
           grid.get(nextY).set(nextX, curID);
           curX = nextX;
           curY = nextY;
@@ -249,11 +250,33 @@ public class Problem {
     return cages;
   }
 
-  public boolean checkGrid(ArrayList<ArrayList<Integer>> gridToCheck) {
+  public boolean checkGrid(ArrayList<ArrayList<Integer>> attempt) {
+    // TODO Ensure rows and columns are also valid
     for (Cage c : cages) {
-      if (!c.isSatisfied(gridToCheck))
+      if (!c.isSatisfied(attempt)) {
         return false;
+      }
     }
+
+    boolean generatedSolutionFound = true;
+    for (int i = 0; i < size; ++i) {
+      for (int j = 0; j < size; ++j) {
+        if (attempt.get(i).get(j) != solution.get(i).get(j)) {
+          generatedSolutionFound = false;
+          break;
+        }
+      }
+      if (!generatedSolutionFound) {
+        break;
+      }
+    }
+
+    if (generatedSolutionFound) {
+      System.out.println("Generated solution found!");
+    } else {
+      System.out.println("Different solution found!");
+    }
+
     return true;
   }
 }

@@ -1,5 +1,7 @@
 package edu.virginia.kenken;
 
+import java.util.ArrayList;
+
 public class UnitCage extends Cage {
   public UnitCage(Cage src) {
     super(src);
@@ -9,5 +11,11 @@ public class UnitCage extends Cage {
   @Override
   public String getClueText() {
     return getTotal() + "";
+  }
+
+  @Override
+  public boolean isSatisfied(ArrayList<ArrayList<Integer>> entryGrid) {
+    return (entryGrid.get(getCellPositions().get(0)).get(
+      getCellPositions().get(1)) == getTotal());
   }
 }
