@@ -6,9 +6,9 @@ public class Driver {
    * @param args
    */
   public static void main(String[] args) {
-    Problem problem = new Problem(9);
+    Problem problem = new Problem(3);
     Solver solver = new Solver(problem);
-    solver.solve();
+    solver.solveBruteForce();
     GUI gui = new GUI(problem);
     gui.gameLoop();
     gui.destroy();
