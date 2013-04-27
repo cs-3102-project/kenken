@@ -28,6 +28,7 @@ public class Cage extends Constraint {
   }
 
   public boolean isSatisfied(ArrayList<ArrayList<Integer>> entryGrid) {
-    return true;
+    System.out.println("This was supposed to be abstract.");
+    return false;
   }
 }

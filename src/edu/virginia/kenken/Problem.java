@@ -2,6 +2,7 @@ package edu.virginia.kenken;
 
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.HashSet;
 import java.util.Random;
 
 public class Problem {
@@ -276,7 +277,33 @@ public class Problem {
     } else {
       System.out.println("Different solution found!");
     }
+    return true;
+  }
 
+  // Method to check for valid row and columns
+  public boolean checkRowAndColumn(ArrayList<ArrayList<Integer>> attempt) {
+    // Create HashSet; when adding duplicates, the add method will return false
+    HashSet<Integer> test = new HashSet<Integer>();
+
+    // First check rows
+    for (int i = 0; i < size; ++i) {
+      test.clear();
+      for (int j = 0; j < size; ++j) {
+        if (!test.add(attempt.get(i).get(j))) {
+          return false;
+        }
+      }
+    }
+
+    // Then check columns
+    for (int i = 0; i < size; ++i) {
+      test.clear();
+      for (int j = 0; j < size; ++j) {
+        if (!test.add(attempt.get(j).get(i))) {
+          return false;
+        }
+      }
+    }
     return true;
   }
 }
