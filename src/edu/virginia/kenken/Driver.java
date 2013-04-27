@@ -8,9 +8,10 @@ public class Driver {
   public static void main(String[] args) {
     Problem problem = new Problem(7);
     Solver solver = new Solver(problem);
-    solver.solveBruteForce();
+    // solver.solveBruteForce();
     GUI gui = new GUI(problem);
     gui.gameLoop();
+    solver.solveDepthFirstSearch();
     gui.destroy();
   }
 

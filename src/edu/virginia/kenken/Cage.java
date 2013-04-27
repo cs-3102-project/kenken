@@ -31,4 +31,14 @@ public class Cage extends Constraint {
     System.out.println("This was supposed to be abstract.");
     return false;
   }
+
+  public boolean isFilled(ArrayList<ArrayList<Integer>> entryGrid) {
+    for (int i = 0; i < getCellPositions().size(); i = i + 2) {
+      if (entryGrid.get(getCellPositions().get(i)).get(
+        getCellPositions().get(i + 1)) == 0) {
+        return false;
+      }
+    }
+    return true;
+  }
 }

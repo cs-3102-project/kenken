@@ -1,7 +1,7 @@
 package edu.virginia.kenken;
 
 import java.util.ArrayList;
-import java.util.Arrays;
+import java.util.Collections;
 import java.util.HashMap;
 
 public class Solver {
@@ -85,6 +85,10 @@ public class Solver {
 
   public void solveDepthFirstSearch() {
     // Declare data structures:
+    solution.clear();
+    for (int i = 0; i < size; ++i) {
+      solution.add(new ArrayList<Integer>(Collections.nCopies(size, 0)));
+    }
     // Hold the legal numbers for each cell (flattened first 2D array)
     ArrayList<ArrayList<Integer>> legalNumbers =
       new ArrayList<ArrayList<Integer>>();
@@ -92,36 +96,110 @@ public class Solver {
     // Hold the relation between each cell and corresponding cage
     HashMap<Integer, Cage> cellsAndCages = problem.getCellsAndCages();
 
+    ArrayList<Cage> cages = problem.getCages();
+
     // Holds marked cells (immutable)
-    ArrayList<Boolean> markedCells = new ArrayList<Boolean>();
+    ArrayList<Boolean> markedCells =
+      new ArrayList<Boolean>(Collections.nCopies(size * size, false));
 
     // Initialize data structures:
     for (int i = 0; i < size * size; ++i) {
-      legalNumbers.add(new ArrayList<Integer>(Arrays.asList(1, 2, 3, 4, 5, 6,
-        7, 8, 9)));
-    }
-
-    // Mark all cells that are enclosed in UnitCages
-    int toRemove;
-    for (int i = 0; i < size * size; ++i) {
-      if (cellsAndCages.get(i).getClass().getName().equals("UnitCage")) {
-
-        // Mark the cell as marked
-        markedCells.set(i, true);
-        toRemove = cellsAndCages.get(i).getTotal();
-
-        // Go through rows and columns
-        for (int j = 0; j < size; ++j) {
-          legalNumbers.get((i % size) + j).remove(toRemove);
-          legalNumbers.get(i / size + j * size).remove(toRemove);
-        }
-
-        // Remove legal numbers for this cell, except for the actual number
-        legalNumbers.get(i).clear();
-        legalNumbers.get(i).add(toRemove);
+      legalNumbers.add(new ArrayList<Integer>());
+      for (int j = 1; j <= size; ++j) {
+        legalNumbers.get(i).add(j);
       }
     }
 
+    // Mark all cells that are enclosed in UnitCages
+    Integer toRemove = new Integer(0);
+    int index;
+    for (Cage c : cages) {
+      if (c.getClass().getName().equals("edu.virginia.kenken.UnitCage")) {
+        // Mark the cell as marked
+        index = c.getCells().get(0);
+        System.out.println(index);
+        markedCells.set(index, true);
+        toRemove = c.getTotal();
+
+        solution.get(index / size).set(index % size, toRemove);
+
+        // Go through rows and columns
+        for (int j = 0; j < size; ++j) {
+          legalNumbers.get(index - (index % size) + j).remove(toRemove);
+          legalNumbers.get(index / size * j).remove(toRemove);
+        }
+
+        // Remove legal numbers for this cell, except for the actual number
+        legalNumbers.get(index).clear();
+        legalNumbers.get(index).add(toRemove);
+      }
+    }
+
+    solution =
+      depthFirst(cellsAndCages, cages, legalNumbers, markedCells, solution, 0);
+
+    for (int i = 0; i < size; ++i) {
+      System.out.println(solution.get(i));
+    }
+  }
+
+  private ArrayList<ArrayList<Integer>> depthFirst(
+    HashMap<Integer, Cage> cellsAndCages, ArrayList<Cage> cages,
+    ArrayList<ArrayList<Integer>> legalNumbers, ArrayList<Boolean> markedCells,
+    ArrayList<ArrayList<Integer>> currSolution, int cellToProcess) {
+    // Make a new copy of every element
+    ArrayList<Boolean> newMarkedCells = new ArrayList<Boolean>(markedCells);
+    ArrayList<ArrayList<Integer>> newLegalNumbers =
+      new ArrayList<ArrayList<Integer>>(legalNumbers);
+    ArrayList<ArrayList<Integer>> newSolution =
+      new ArrayList<ArrayList<Integer>>(currSolution);
+
+    if (cellToProcess == size * size) {
+      return currSolution;
+    }
+    if (newMarkedCells.get(cellToProcess) == true) {
+      return depthFirst(cellsAndCages, cages, newLegalNumbers, newMarkedCells,
+        newSolution, cellToProcess + 1);
+    }
+    for (Integer i : newLegalNumbers.get(cellToProcess)) {
+
+      // See if this will create any conflict (cage)
+      // If it does not satisfy the cage, then move to next iteration
+      newSolution.get(cellToProcess / size).set(cellToProcess % size, i);
+      if (cellsAndCages.get(cellToProcess).isFilled(newSolution)
+        && !cellsAndCages.get(cellToProcess).isSatisfied(newSolution)) {
+        // If this is the last available symbol and it fails, then try another
+        // branch
+        if (newLegalNumbers.get(cellToProcess).size() == 1) {
+          return null;
+        }
+        continue;
+      }
+
+      // remove legal numbering from row and columns
+
+      // Go through rows and columns
+      for (int j = 0; j < size; ++j) {
+        newLegalNumbers.get(cellToProcess - (cellToProcess % size) + j).remove(
+          i);
+        newLegalNumbers.get(cellToProcess / size * j).remove(i);
+      }
+
+      // Remove legal numbers for this cell, except for the actual number
+      newLegalNumbers.get(cellToProcess).clear();
+      newLegalNumbers.get(cellToProcess).add(i);
+      newMarkedCells.set(cellToProcess, true);
+
+      if (cellsAndCages.get(cellToProcess).isFilled(newSolution)
+        && cellsAndCages.get(cellToProcess).isSatisfied(newSolution)) {
+        break;
+      }
+      if (depthFirst(cellsAndCages, cages, newLegalNumbers, newMarkedCells,
+        newSolution, cellToProcess + 1) == null) {
+        continue;
+      }
+    }
+    return newSolution;
   }
 
   public ArrayList<ArrayList<Integer>> getSolution() {
