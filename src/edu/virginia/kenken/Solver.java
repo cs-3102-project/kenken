@@ -2,7 +2,6 @@ package edu.virginia.kenken;
 
 import java.util.ArrayList;
 import java.util.Collections;
-import java.util.HashMap;
 
 public class Solver {
   private static final int ATTEMPTS_PER_MINUTE = 40000000;
@@ -10,6 +9,10 @@ public class Solver {
   private final Problem problem;
   private ArrayList<ArrayList<Integer>> solution;
   private final int size;
+
+  // DFS variables
+  private ArrayList<Boolean> markedCells;
+  private ArrayList<ArrayList<Integer>> possibleNumbers;
 
   public Solver(Problem problem) {
     this.problem = problem;
@@ -89,54 +92,35 @@ public class Solver {
     for (int i = 0; i < size; ++i) {
       solution.add(new ArrayList<Integer>(Collections.nCopies(size, 0)));
     }
+
     // Hold the legal numbers for each cell (flattened first 2D array)
-    ArrayList<ArrayList<Integer>> legalNumbers =
-      new ArrayList<ArrayList<Integer>>();
+    possibleNumbers = new ArrayList<ArrayList<Integer>>();
 
     // Hold the relation between each cell and corresponding cage
-    HashMap<Integer, Cage> cellsAndCages = problem.getCellsAndCages();
-
+    ArrayList<Cage> cellCages = problem.getCellCages();
     ArrayList<Cage> cages = problem.getCages();
 
     // Holds marked cells (immutable)
-    ArrayList<Boolean> markedCells =
+    markedCells =
       new ArrayList<Boolean>(Collections.nCopies(size * size, false));
 
     // Initialize data structures:
     for (int i = 0; i < size * size; ++i) {
-      legalNumbers.add(new ArrayList<Integer>());
+      possibleNumbers.add(new ArrayList<Integer>());
       for (int j = 1; j <= size; ++j) {
-        legalNumbers.get(i).add(j);
+        possibleNumbers.get(i).add(j);
       }
     }
 
     // Mark all cells that are enclosed in UnitCages
-    Integer toRemove = new Integer(0);
-    int index;
     for (Cage c : cages) {
-      if (c.getClass().getName().equals("edu.virginia.kenken.UnitCage")) {
-        // Mark the cell as marked
-        index = c.getCells().get(0);
-        System.out.println(index);
-        markedCells.set(index, true);
-        toRemove = c.getTotal();
-
-        solution.get(index / size).set(index % size, toRemove);
-
-        // Go through rows and columns
-        for (int j = 0; j < size; ++j) {
-          legalNumbers.get(index - (index % size) + j).remove(toRemove);
-          legalNumbers.get(index / size * j).remove(toRemove);
-        }
-
-        // Remove legal numbers for this cell, except for the actual number
-        legalNumbers.get(index).clear();
-        legalNumbers.get(index).add(toRemove);
+      if (c.getCells().size() == 1) {
+        markCell(c.getCells().get(0), c.getTotal());
       }
     }
 
     solution =
-      depthFirst(cellsAndCages, cages, legalNumbers, markedCells, solution, 0);
+      depthFirst(cellCages, cages, possibleNumbers, markedCells, solution, 0);
 
     for (int i = 0; i < size; ++i) {
       System.out.println(solution.get(i));
@@ -144,7 +128,7 @@ public class Solver {
   }
 
   private ArrayList<ArrayList<Integer>> depthFirst(
-    HashMap<Integer, Cage> cellsAndCages, ArrayList<Cage> cages,
+    ArrayList<Cage> cellsAndCages, ArrayList<Cage> cages,
     ArrayList<ArrayList<Integer>> legalNumbers, ArrayList<Boolean> markedCells,
     ArrayList<ArrayList<Integer>> currSolution, int cellToProcess) {
     // Make a new copy of every element (the copy constructor creates a shallow
@@ -217,6 +201,24 @@ public class Solver {
 
   public ArrayList<ArrayList<Integer>> getSolution() {
     return solution;
+  }
+
+  private void markCell(int cellID, int value) {
+    // Mark the cell as marked
+    System.out.println(cellID);
+    markedCells.set(cellID, true);
+
+    solution.get(cellID / size).set(cellID % size, value);
+
+    // Go through rows and columns
+    for (int j = 0; j < size; ++j) {
+      possibleNumbers.get(cellID - (cellID % size) + j).remove(value);
+      possibleNumbers.get(cellID / size * j).remove(value);
+    }
+
+    // Remove legal numbers for this cell, except for the actual number
+    possibleNumbers.get(cellID).clear();
+    possibleNumbers.get(cellID).add(value);
   }
 
   /**
