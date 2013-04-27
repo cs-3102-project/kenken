@@ -147,12 +147,25 @@ public class Solver {
     HashMap<Integer, Cage> cellsAndCages, ArrayList<Cage> cages,
     ArrayList<ArrayList<Integer>> legalNumbers, ArrayList<Boolean> markedCells,
     ArrayList<ArrayList<Integer>> currSolution, int cellToProcess) {
-    // Make a new copy of every element
-    ArrayList<Boolean> newMarkedCells = new ArrayList<Boolean>(markedCells);
+    // Make a new copy of every element (the copy constructor creates a shallow
+    // copy
+    ArrayList<Boolean> newMarkedCells = new ArrayList<Boolean>();
     ArrayList<ArrayList<Integer>> newLegalNumbers =
-      new ArrayList<ArrayList<Integer>>(legalNumbers);
+      new ArrayList<ArrayList<Integer>>();
     ArrayList<ArrayList<Integer>> newSolution =
-      new ArrayList<ArrayList<Integer>>(currSolution);
+      new ArrayList<ArrayList<Integer>>();
+
+    for (int i = 0; i < size * size; ++i) {
+      newMarkedCells.add(markedCells.get(i));
+      newLegalNumbers.add(legalNumbers.get(i));
+    }
+
+    for (int i = 0; i < size; ++i) {
+      newSolution.add(new ArrayList<Integer>());
+      for (int j = 0; j < size; ++j) {
+        newSolution.get(i).add(currSolution.get(i).get(j));
+      }
+    }
 
     if (cellToProcess == size * size) {
       return currSolution;
