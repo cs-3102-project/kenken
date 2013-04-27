@@ -2,6 +2,7 @@ package edu.virginia.kenken;
 
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Random;
 
@@ -12,7 +13,7 @@ public class Problem {
   ArrayList<ArrayList<Integer>> solution;
   private int numCages;
   private ArrayList<Cage> cages;
-
+  private HashMap<Integer, Cage> cellsAndCages;
   private final Random rand;
 
   public Problem(int size) {
@@ -21,7 +22,7 @@ public class Problem {
     numCages = 0;
     cages = new ArrayList<Cage>();
     rand = new Random();
-
+    cellsAndCages = new HashMap<Integer, Cage>();
     solution = new ArrayList<ArrayList<Integer>>();
 
     // Start with a legal, non-random board
@@ -97,8 +98,12 @@ public class Problem {
     cages = new ArrayList<Cage>(numCages);
     Cage cage;
 
+    // ArrayList used to keep track of which cells belong to the current cage
+    ArrayList<Integer> cellsOfACage = new ArrayList<Integer>();
+
     // Each iteration generates a new cage
     while (true) {
+      cellsOfACage.clear();
       // Select first available uncaged cell to be "root node" of new cage
       boardFull = true;
       for (int i = 0; i < size; ++i) {
@@ -139,6 +144,7 @@ public class Problem {
       // Add method is used for positioning of the cells based on ID. Do not
       // change!
       cage.add(curY * size + curX);
+      cellsOfACage.add(curY * size + curX);
       cage.addPosition(curY, curX);
       cage.addElement(solution.get(curY).get(curX));
       grid.get(curY).set(curX, curID);
@@ -185,6 +191,7 @@ public class Problem {
         // If next cell is valid, add it to cage and move to it
         if (growable && cageSize < maxCageSize) {
           cage.add(nextY * size + nextX);
+          cellsOfACage.add(nextY * size + nextX);
           cage.addPosition(nextY, nextX);
           cage.addElement(solution.get(nextY).get(nextX));
           grid.get(nextY).set(nextX, curID);
@@ -197,31 +204,39 @@ public class Problem {
       }
 
       // Assign operator to cage
+      Cage operationCage;
       switch (cage.getCells().size()) {
         case 1:
-          cages.add(new UnitCage(cage));
+          operationCage = new UnitCage(cage);
           break;
         case 2:
           // TODO Make modulo/division fairer
           opCutoff = rand.nextFloat();
           if (opCutoff < 0.3) {
-            cages.add(new SubtractionCage(cage));
+            operationCage = new SubtractionCage(cage);
           } else if (opCutoff < 0.6) {
-            cages.add(new AdditionCage(cage));
+            operationCage = new AdditionCage(cage);
           } else if (opCutoff < 1) {
-            cages.add(new MultiplicationCage(cage));
+            operationCage = new MultiplicationCage(cage);
           } else {
             if (rand.nextBoolean()) {
-              cages.add(new ModuloCage(cage));
+              operationCage = new ModuloCage(cage);
             } else {
-              cages.add(new DivisionCage(cage));
+              operationCage = new DivisionCage(cage);
             }
           }
           break;
         default:
-          cages.add(rand.nextBoolean() ? new MultiplicationCage(cage)
-            : new AdditionCage(cage));
+          operationCage =
+            (rand.nextBoolean() ? new MultiplicationCage(cage)
+              : new AdditionCage(cage));
           break;
+      }
+      cages.add(operationCage);
+
+      // Assign each cell, referenced by ID, to the appropriate cage
+      for (Integer i : cellsOfACage) {
+        cellsAndCages.put(i, operationCage);
       }
 
       sizeDistribution
@@ -306,4 +321,9 @@ public class Problem {
     }
     return true;
   }
+
+  public HashMap<Integer, Cage> getCellsAndCages() {
+    return cellsAndCages;
+  }
+
 }

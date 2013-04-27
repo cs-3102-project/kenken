@@ -1,6 +1,8 @@
 package edu.virginia.kenken;
 
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.HashMap;
 
 public class Solver {
   private static final int ATTEMPTS_PER_MINUTE = 40000000;
@@ -79,6 +81,47 @@ public class Solver {
     for (int i = 0; i < size; ++i) {
       System.out.println(solution.get(i));
     }
+  }
+
+  public void solveDepthFirstSearch() {
+    // Declare data structures:
+    // Hold the legal numbers for each cell (flattened first 2D array)
+    ArrayList<ArrayList<Integer>> legalNumbers =
+      new ArrayList<ArrayList<Integer>>();
+
+    // Hold the relation between each cell and corresponding cage
+    HashMap<Integer, Cage> cellsAndCages = problem.getCellsAndCages();
+
+    // Holds marked cells (immutable)
+    ArrayList<Boolean> markedCells = new ArrayList<Boolean>();
+
+    // Initialize data structures:
+    for (int i = 0; i < size * size; ++i) {
+      legalNumbers.add(new ArrayList<Integer>(Arrays.asList(1, 2, 3, 4, 5, 6,
+        7, 8, 9)));
+    }
+
+    // Mark all cells that are enclosed in UnitCages
+    int toRemove;
+    for (int i = 0; i < size * size; ++i) {
+      if (cellsAndCages.get(i).getClass().getName().equals("UnitCage")) {
+
+        // Mark the cell as marked
+        markedCells.set(i, true);
+        toRemove = cellsAndCages.get(i).getTotal();
+
+        // Go through rows and columns
+        for (int j = 0; j < size; ++j) {
+          legalNumbers.get((i % size) + j).remove(toRemove);
+          legalNumbers.get(i / size + j * size).remove(toRemove);
+        }
+
+        // Remove legal numbers for this cell, except for the actual number
+        legalNumbers.get(i).clear();
+        legalNumbers.get(i).add(toRemove);
+      }
+    }
+
   }
 
   public ArrayList<ArrayList<Integer>> getSolution() {
