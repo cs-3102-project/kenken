@@ -26,7 +26,10 @@ public class DepthFirstSolver {
       new HashMap<Integer, HashSet<Integer>>();
     for (int i = 0; i < size * size; ++i) {
       root.put(i, new HashSet<Integer>());
-      for (int j = 1; j <= size; ++j) {
+      // TODO Make this iterate upwards (currently set to iterate downwards to
+      // improve naive information gain, since large cell guesses typically fail
+      // faster)
+      for (int j = size; j > 0; --j) {
         root.get(i).add(j);
       }
     }
@@ -35,7 +38,9 @@ public class DepthFirstSolver {
     // their peers, marking them if possible too
     for (Cage c : cages) {
       if (c.getCells().size() == 1) {
-        markAndTrimPeers(c.getCells().get(0), c.getTotal(), root);
+        root.get(c.getCells().get(0)).clear();
+        root.get(c.getCells().get(0)).add(c.getTotal());
+        trimPeers(c.getCells().get(0), c.getTotal(), root);
       }
     }
 
@@ -43,13 +48,24 @@ public class DepthFirstSolver {
     // TODO Seed DFS with the cell that has highest information gain
 
     // Call the root instance of DFS on the seed cell
-    DFS(0, firstSeedable(root), root);
+    DFS(firstSeedable(root), root);
 
     if (solution == null) {
       System.out.println("No solution found.");
     } else {
-      problem.checkGrid(make2D(solution));
+      ArrayList<ArrayList<Integer>> matrix =
+        new ArrayList<ArrayList<Integer>>();
+      for (int i = 0; i < size; ++i) {
+        matrix.add(new ArrayList<Integer>());
+        for (int j = 0; j < size; ++j) {
+          matrix.get(i).add(
+            (solution.get(i * size + j).size() == 1) ? solution
+              .get(i * size + j).iterator().next() : -1);
+        }
+      }
+      problem.checkGrid(matrix);
       printState(solution);
+      System.out.println("States checked: " + statesChecked);
     }
   }
 
@@ -60,8 +76,7 @@ public class DepthFirstSolver {
    * @param cellID
    * @param state
    */
-  private void DFS(int level, int cellID,
-    HashMap<Integer, HashSet<Integer>> state) {
+  private void DFS(int cellID, HashMap<Integer, HashSet<Integer>> state) {
     // Check whether this is a solution
     if (solutionFound) {
       return;
@@ -70,7 +85,6 @@ public class DepthFirstSolver {
     // Loop through possible values for this cell
     int markedInCage;
     boolean cagesSatisfied;
-    ArrayList<ArrayList<Integer>> matrix;
     HashMap<Integer, HashSet<Integer>> child;
 
     for (Integer v : state.get(cellID)) {
@@ -82,7 +96,7 @@ public class DepthFirstSolver {
       statesChecked += 1;
       if (statesChecked % 1000000 == 0) {
         System.out.println("DFS has checked " + statesChecked * 0.000001
-          + " million states");
+          + " states");
       }
 
       // Copy parent state into a new child state
@@ -93,12 +107,11 @@ public class DepthFirstSolver {
       child.get(cellID).add(v);
 
       // Trim peers
-      markAndTrimPeers(cellID, v, child);
+      trimPeers(cellID, v, child);
 
       // Check for cage conflicts (note that we don't need to check for
       // row/column conflicts since we previously called makeAndTrimPeers on the
       // HashSet we're iterating through)
-      matrix = make2D(child);
       cagesSatisfied = true;
       for (Cage c : cages) {
         if (!cagesSatisfied) {
@@ -109,8 +122,7 @@ public class DepthFirstSolver {
         markedInCage = 0;
         for (Integer i : c.getCells()) {
           if (child.get(i).size() < 1) {
-            // This should never occur but might if a wrong solution is given to
-            // markAndTrimPeers
+            // This might occur if a wrong solution is given to trimPeers
             cagesSatisfied = false;
             break;
           }
@@ -118,8 +130,8 @@ public class DepthFirstSolver {
             markedInCage += 1;
           }
         }
-        if (markedInCage == c.getNumCells()) {
-          if (!c.isSatisfied(matrix)) {
+        if (cagesSatisfied && markedInCage == c.getNumCells()) {
+          if (!c.isSatisfiedHashMapVersion(child, size)) {
             cagesSatisfied = false;
             break;
           }
@@ -129,20 +141,16 @@ public class DepthFirstSolver {
         continue;
       }
 
-      // If child is solution, stop. Otherwise, recurse DFS.
+      // Check whether child is solution
       if (isSolution(child)) {
         solution = child;
         solutionFound = true;
         return;
       }
 
-      // TODO Seed DFS with the cell that has highest information gain
-      int seed = firstSeedable(child);
-
       // Recursively call DFS
-      if (seed != -1) {
-        DFS(level + 1, seed, child);
-      }
+      // TODO Seed DFS with the cell that has highest information gain
+      DFS(firstSeedable(child), child);
     }
   }
 
@@ -158,12 +166,8 @@ public class DepthFirstSolver {
    * @param state
    *          Current state
    */
-  private void markAndTrimPeers(int cellID, int value,
+  private void trimPeers(int cellID, int value,
     HashMap<Integer, HashSet<Integer>> state) {
-    // Make value the only possibility for this cell
-    state.get(cellID).clear();
-    state.get(cellID).add(value);
-
     int row = cellID / size;
     int col = cellID % size;
     int peerID;
@@ -174,8 +178,9 @@ public class DepthFirstSolver {
       peerID = row * size + i;
       if (peerID != cellID) {
         if (state.get(peerID).remove(value)) {
+          // Peer newly became determined, so trim *its* peers
           if (state.get(peerID).size() == 1) {
-            markAndTrimPeers(peerID, state.get(peerID).iterator().next(), state);
+            trimPeers(peerID, state.get(peerID).iterator().next(), state);
           }
         }
       }
@@ -183,8 +188,9 @@ public class DepthFirstSolver {
       peerID = size * i + col;
       if (peerID != cellID) {
         if (state.get(peerID).remove(value)) {
+          // Peer newly became determined, so trim *its* peers
           if (state.get(peerID).size() == 1) {
-            markAndTrimPeers(peerID, state.get(peerID).iterator().next(), state);
+            trimPeers(peerID, state.get(peerID).iterator().next(), state);
           }
         }
       }
@@ -212,27 +218,6 @@ public class DepthFirstSolver {
       }
     }
     return allCellsMarked;
-  }
-
-  // TODO Standardize the data representation so this conversion isn't necessary
-  /**
-   * Convert HashMap representation of state into 2D ArrayList.
-   * 
-   * @param state
-   * @return 2D version of input state
-   */
-  private ArrayList<ArrayList<Integer>> make2D(
-    HashMap<Integer, HashSet<Integer>> state) {
-    ArrayList<ArrayList<Integer>> matrix = new ArrayList<ArrayList<Integer>>();
-    for (int i = 0; i < size; ++i) {
-      matrix.add(new ArrayList<Integer>());
-      for (int j = 0; j < size; ++j) {
-        matrix.get(i).add(
-          (state.get(i * size + j).size() == 1) ? state.get(i * size + j)
-            .iterator().next() : -1);
-      }
-    }
-    return matrix;
   }
 
   private HashMap<Integer, HashSet<Integer>> cloneState(

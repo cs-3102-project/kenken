@@ -1,6 +1,8 @@
 package edu.virginia.kenken;
 
 import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.HashSet;
 
 public class Cage extends Constraint {
   private int total;
@@ -25,6 +27,12 @@ public class Cage extends Constraint {
 
   public void setTotal(int total) {
     this.total = total;
+  }
+
+  public boolean isSatisfiedHashMapVersion(
+    HashMap<Integer, HashSet<Integer>> state, int size) {
+    System.out.println("This was supposed to be abstract.");
+    return false;
   }
 
   public boolean isSatisfied(ArrayList<ArrayList<Integer>> entryGrid) {
