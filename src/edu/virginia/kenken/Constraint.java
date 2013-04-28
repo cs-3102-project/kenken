@@ -4,7 +4,7 @@ import java.util.ArrayList;
 
 public class Constraint {
   private ArrayList<Integer> cells;
-  private ArrayList<Integer> cellElements;
+  private final ArrayList<Integer> cellElements;
   private ArrayList<Integer> cellPositions;
 
   public Constraint() {
@@ -44,6 +44,10 @@ public class Constraint {
 
   public ArrayList<Integer> getCellPositions() {
     return cellPositions;
+  }
+
+  public int getNumCells() {
+    return cells.size();
   }
 
 }
