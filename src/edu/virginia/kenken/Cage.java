@@ -29,6 +29,10 @@ public class Cage extends Constraint {
     this.total = total;
   }
 
+  public void preprocess(HashMap<Integer, HashSet<Integer>> state) {
+    return;
+  }
+
   public boolean isSatisfiedHashMapVersion(
     HashMap<Integer, HashSet<Integer>> state, int size) {
     System.out.println("This was supposed to be abstract.");

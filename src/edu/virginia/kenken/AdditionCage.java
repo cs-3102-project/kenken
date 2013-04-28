@@ -3,6 +3,7 @@ package edu.virginia.kenken;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.Iterator;
 
 public class AdditionCage extends Cage {
   public AdditionCage(Cage src) {
@@ -17,6 +18,20 @@ public class AdditionCage extends Cage {
   @Override
   public String getClueText() {
     return getTotal() + "+";
+  }
+
+  @Override
+  public void preprocess(HashMap<Integer, HashSet<Integer>> state) {
+    Iterator<Integer> it;
+    for (Integer cellID : getCells()) {
+      it = state.get(cellID).iterator();
+      while (it.hasNext()) {
+        if (it.next() >= getTotal()) {
+          it.remove();
+        }
+      }
+    }
+    return;
   }
 
   @Override

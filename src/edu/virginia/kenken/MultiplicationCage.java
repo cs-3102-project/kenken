@@ -3,6 +3,7 @@ package edu.virginia.kenken;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.Iterator;
 
 public class MultiplicationCage extends Cage {
   public MultiplicationCage(Cage src) {
@@ -17,6 +18,20 @@ public class MultiplicationCage extends Cage {
   @Override
   public String getClueText() {
     return getTotal() + "x";
+  }
+
+  @Override
+  public void preprocess(HashMap<Integer, HashSet<Integer>> state) {
+    Iterator<Integer> it;
+    for (Integer cellID : getCells()) {
+      it = state.get(cellID).iterator();
+      while (it.hasNext()) {
+        if (getTotal() % it.next() > 0) {
+          it.remove();
+        }
+      }
+    }
+    return;
   }
 
   @Override
