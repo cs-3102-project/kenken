@@ -1,6 +1,34 @@
 package edu.virginia.kenken;
 
-import static org.lwjgl.opengl.GL11.*;
+import static org.lwjgl.opengl.GL11.GL_BLEND;
+import static org.lwjgl.opengl.GL11.GL_COLOR_BUFFER_BIT;
+import static org.lwjgl.opengl.GL11.GL_COLOR_MATERIAL;
+import static org.lwjgl.opengl.GL11.GL_DEPTH_BUFFER_BIT;
+import static org.lwjgl.opengl.GL11.GL_DEPTH_TEST;
+import static org.lwjgl.opengl.GL11.GL_LIGHTING;
+import static org.lwjgl.opengl.GL11.GL_LINES;
+import static org.lwjgl.opengl.GL11.GL_MODELVIEW;
+import static org.lwjgl.opengl.GL11.GL_ONE_MINUS_SRC_ALPHA;
+import static org.lwjgl.opengl.GL11.GL_PROJECTION;
+import static org.lwjgl.opengl.GL11.GL_QUADS;
+import static org.lwjgl.opengl.GL11.GL_SMOOTH;
+import static org.lwjgl.opengl.GL11.GL_SRC_ALPHA;
+import static org.lwjgl.opengl.GL11.GL_TEXTURE_2D;
+import static org.lwjgl.opengl.GL11.glBegin;
+import static org.lwjgl.opengl.GL11.glBlendFunc;
+import static org.lwjgl.opengl.GL11.glClear;
+import static org.lwjgl.opengl.GL11.glClearColor;
+import static org.lwjgl.opengl.GL11.glColor3f;
+import static org.lwjgl.opengl.GL11.glDisable;
+import static org.lwjgl.opengl.GL11.glEnable;
+import static org.lwjgl.opengl.GL11.glEnd;
+import static org.lwjgl.opengl.GL11.glLineWidth;
+import static org.lwjgl.opengl.GL11.glLoadIdentity;
+import static org.lwjgl.opengl.GL11.glMatrixMode;
+import static org.lwjgl.opengl.GL11.glOrtho;
+import static org.lwjgl.opengl.GL11.glShadeModel;
+import static org.lwjgl.opengl.GL11.glVertex2f;
+import static org.lwjgl.opengl.GL11.glVertex2i;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -69,6 +97,9 @@ public class GUI {
   // Matrix of user's cell notes
   private ArrayList<ArrayList<ArrayList<Boolean>>> noteGrid;
 
+  // Matrix of incorrect cells
+  private ArrayList<ArrayList<Boolean>> incorrectGrid;
+
   // Maps clue cells to clue text
   private TreeMap<Integer, String> clueText;
 
@@ -94,12 +125,15 @@ public class GUI {
 
     guessGrid = new ArrayList<ArrayList<Integer>>();
     noteGrid = new ArrayList<ArrayList<ArrayList<Boolean>>>();
+    incorrectGrid = new ArrayList<ArrayList<Boolean>>();
     for (int i = 0; i < size; ++i) {
       guessGrid.add(new ArrayList<Integer>(Collections.nCopies(size, -1)));
       noteGrid.add(new ArrayList<ArrayList<Boolean>>());
+      incorrectGrid.add(new ArrayList<Boolean>());
       for (int j = 0; j < size; ++j) {
         noteGrid.get(i).add(
           new ArrayList<Boolean>(Collections.nCopies(size, false)));
+        incorrectGrid.get(i).add(false);
       }
     }
 
@@ -240,6 +274,25 @@ public class GUI {
       glVertex2f(BOARD_OFFSET_X + hoverCellX * cellWidth, BOARD_OFFSET_Y
         + (hoverCellY + 1) * cellWidth);
       glEnd();
+    }
+
+    for (int i = 0; i < size; ++i) {
+      for (int j = 0; j < size; ++j) {
+        if (incorrectGrid.get(i).get(j) == true) {
+          // Highlight errors in red
+          glColor3f(0.8f, 0.4f, 0.4f);
+          glBegin(GL_QUADS);
+          glVertex2f(BOARD_OFFSET_X + j * cellWidth, BOARD_OFFSET_Y + i
+            * cellWidth);
+          glVertex2f(BOARD_OFFSET_X + (j + 1) * cellWidth, BOARD_OFFSET_Y + i
+            * cellWidth);
+          glVertex2f(BOARD_OFFSET_X + (j + 1) * cellWidth, BOARD_OFFSET_Y
+            + (i + 1) * cellWidth);
+          glVertex2f(BOARD_OFFSET_X + j * cellWidth, BOARD_OFFSET_Y + (i + 1)
+            * cellWidth);
+          glEnd();
+        }
+      }
     }
 
     // Draw cell walls (note that when traversing the cageIDs in either the
@@ -402,6 +455,66 @@ public class GUI {
         } else {
           guessGrid.get(hoverCellY).set(hoverCellX, n);
         }
+        // Verify row
+        ArrayList<Integer> currRow =
+          new ArrayList<Integer>(guessGrid.get(hoverCellY));
+        for (int i = 0; i < size; ++i) {
+          if (currRow.get(i) < 0) {
+            incorrectGrid.get(hoverCellY).set(i, false);
+          } else {
+            if (currRow.lastIndexOf(Integer.valueOf(currRow.get(i))) != i) {
+              incorrectGrid.get(hoverCellY).set(i, true);
+              incorrectGrid.get(hoverCellY).set(
+                currRow.lastIndexOf(Integer.valueOf(currRow.get(i))), true);
+            }
+            if (Collections.frequency(currRow, currRow.get(i)) < 2
+              && incorrectGrid.get(hoverCellY).get(i) == true) {
+              incorrectGrid.get(hoverCellY).set(i, false);
+            }
+          }
+        }
+
+        // Verify Col
+        ArrayList<Integer> currCol = new ArrayList<Integer>();
+        for (int i = 0; i < size; ++i) {
+          currCol.add(guessGrid.get(i).get(hoverCellX));
+        }
+        for (int i = 0; i < size; ++i) {
+          if (currCol.get(i) < 0) {
+            incorrectGrid.get(i).set(hoverCellX, false);
+          } else {
+            if (currCol.lastIndexOf(Integer.valueOf(currCol.get(i))) != i) {
+              incorrectGrid.get(i).set(hoverCellX, true);
+              incorrectGrid.get(
+                currCol.lastIndexOf(Integer.valueOf(currCol.get(i)))).set(
+                hoverCellX, true);
+
+            }
+            if (Collections.frequency(currCol, currCol.get(i)) < 2
+              && Collections.frequency(currRow, currCol.get(i)) < 2
+              && incorrectGrid.get(i).get(hoverCellX) == true) {
+              incorrectGrid.get(i).set(hoverCellX, false);
+
+              // Yes, recheck ALL the rows again
+              for (int j = 0; j < size; ++j) {
+                ArrayList<Integer> row =
+                  new ArrayList<Integer>(guessGrid.get(j));
+                for (int k = 0; k < size; ++k) {
+                  if (row.get(k) < 0) {
+                    incorrectGrid.get(j).set(k, false);
+                  } else {
+                    if (row.lastIndexOf(Integer.valueOf(row.get(k))) != k) {
+                      incorrectGrid.get(j).set(k, true);
+                      incorrectGrid.get(j).set(
+                        row.lastIndexOf(Integer.valueOf(row.get(k))), true);
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+
       } else {
         // Mark note
         if (noteGrid.get(hoverCellY).get(hoverCellX).get(n - 1)) {
