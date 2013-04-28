@@ -1,9 +1,6 @@
 package edu.virginia.kenken;
 
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.HashSet;
-import java.util.Random;
+import java.util.*;
 
 public class Problem {
 
