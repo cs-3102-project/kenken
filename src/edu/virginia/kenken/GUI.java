@@ -52,6 +52,9 @@ public class GUI {
   // Grid of cage IDs
   ArrayList<ArrayList<Integer>> cageIDs;
 
+  // Cell and cages relationship
+  private ArrayList<Cage> cellCages;
+
   // Pixel width of a cell
   private int cellWidth;
 
@@ -68,6 +71,9 @@ public class GUI {
 
   // Matrix of incorrect cells
   private ArrayList<ArrayList<Boolean>> incorrectGrid;
+
+  // Matrix of incorrect cell (cage)
+  private ArrayList<ArrayList<Boolean>> incorrectCellCages;
 
   // Maps clue cells to clue text
   private TreeMap<Integer, String> clueText;
@@ -91,18 +97,22 @@ public class GUI {
     size = problem.getSize();
     cellWidth = BOARD_WIDTH / size;
     cageIDs = problem.getGrid();
+    cellCages = problem.getCellCages();
 
     guessGrid = new ArrayList<ArrayList<Integer>>();
     noteGrid = new ArrayList<ArrayList<ArrayList<Boolean>>>();
     incorrectGrid = new ArrayList<ArrayList<Boolean>>();
+    incorrectCellCages = new ArrayList<ArrayList<Boolean>>();
     for (int i = 0; i < size; ++i) {
       guessGrid.add(new ArrayList<Integer>(Collections.nCopies(size, -1)));
       noteGrid.add(new ArrayList<ArrayList<Boolean>>());
       incorrectGrid.add(new ArrayList<Boolean>());
+      incorrectCellCages.add(new ArrayList<Boolean>());
       for (int j = 0; j < size; ++j) {
         noteGrid.get(i).add(
           new ArrayList<Boolean>(Collections.nCopies(size, false)));
         incorrectGrid.get(i).add(false);
+        incorrectCellCages.get(i).add(false);
       }
     }
 
@@ -328,14 +338,21 @@ public class GUI {
         BOARD_OFFSET_Y + CLUE_OFFSET_Y + cellWidth * (e.getKey() / size),
         e.getValue(), Color.darkGray);
     }
-
+    Color normal = Color.black;
+    Color incorrect = Color.red;
+    Color guessColor;
     // Draw guess text and note text
     for (int i = 0; i < size; ++i) {
       for (int j = 0; j < size; ++j) {
+        if (!incorrectCellCages.get(i).get(j)) {
+          guessColor = normal;
+        } else {
+          guessColor = incorrect;
+        }
         if (guessGrid.get(i).get(j) > 0) {
           guessFont.drawString(BOARD_OFFSET_X + j * cellWidth + GUESS_OFFSET_X,
             BOARD_OFFSET_Y + i * cellWidth + GUESS_OFFSET_Y,
-            Integer.toString(guessGrid.get(i).get(j)), Color.black);
+            Integer.toString(guessGrid.get(i).get(j)), guessColor);
         } else {
           for (int k = 0; k < size; ++k) {
             if (noteGrid.get(i).get(j).get(k)) {
@@ -481,6 +498,27 @@ public class GUI {
                 }
               }
             }
+          }
+        }
+
+        // Deal with cages
+        Cage cageToCheck = cellCages.get(hoverCellY * size + hoverCellX);
+        if (guessGrid.get(hoverCellY).get(hoverCellX) > -1) {
+          if (cageToCheck.isFilled(guessGrid)
+            && !cageToCheck.isSatisfied(guessGrid)) {
+            for (Integer i : cageToCheck.getCells()) {
+              incorrectCellCages.get(i / size).set(i % size, true);
+
+            }
+          } else if (cageToCheck.isFilled(guessGrid)
+            && cageToCheck.isSatisfied(guessGrid)) {
+            for (Integer i : cageToCheck.getCells()) {
+              incorrectCellCages.get(i / size).set(i % size, false);
+            }
+          }
+        } else {
+          for (Integer i : cageToCheck.getCells()) {
+            incorrectCellCages.get(i / size).set(i % size, false);
           }
         }
 

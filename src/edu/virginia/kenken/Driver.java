@@ -7,12 +7,12 @@ public class Driver {
    */
   public static void main(String[] args) {
     Problem problem = new Problem(9);
-    DepthFirstSolver solver = new DepthFirstSolver(problem);
-    long startTime = System.nanoTime();
-    solver.solve();
-    long endTime = System.nanoTime();
-    System.out.println("Elapsed time: " + (endTime - startTime) * 0.000000001
-      + " seconds");
+    // DepthFirstSolver solver = new DepthFirstSolver(problem);
+    // long startTime = System.nanoTime();
+    // solver.solve();
+    // long endTime = System.nanoTime();
+    // System.out.println("Elapsed time: " + (endTime - startTime) * 0.000000001
+    // + " seconds");
     // solver.solveBruteForce();
     GUI gui = new GUI(problem);
     gui.gameLoop();

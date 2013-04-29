@@ -1,9 +1,6 @@
 package edu.virginia.kenken;
 
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.HashSet;
+import java.util.*;
 
 public class DivisionCage extends Cage {
   public DivisionCage(Cage src) {
@@ -39,5 +36,4 @@ public class DivisionCage extends Cage {
       entryGrid.get(getCellPositions().get(2)).get(getCellPositions().get(3)));
     return (Collections.max(elements) / Collections.min(elements) == getTotal());
   }
-
 }
