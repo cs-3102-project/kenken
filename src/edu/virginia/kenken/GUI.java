@@ -44,6 +44,11 @@ public class GUI {
   private static final int NOTE_OFFSET_Y = 15;
   private static final int NOTE_FONT_SIZE = 10;
 
+  // Instruction constants
+  private static final int HELP_OFFSET_X = 10;
+  private static final int HELP_OFFSET_Y = 15;
+  private static final int HELP_FONT_SIZE = 20;
+
   private static final String FONT_PATH = "res/DroidSans.ttf";
 
   // Height (or width) of problem in cells
@@ -62,6 +67,9 @@ public class GUI {
   private UnicodeFont clueFont;
   private UnicodeFont guessFont;
   private UnicodeFont noteFont;
+
+  // Help font
+  private UnicodeFont helpFont;
 
   // Matrix of user's cell guesses
   private ArrayList<ArrayList<Integer>> guessGrid;
@@ -84,6 +92,9 @@ public class GUI {
 
   // Whether entry mode is "guess" or "note"
   private boolean inGuessMode;
+
+  // Whether or not to show help on the board
+  private boolean showHelp;
 
   public GUI(Problem problem) {
     setProblem(problem);
@@ -175,6 +186,13 @@ public class GUI {
       noteFont.addGlyphs(400, 600);
       noteFont.getEffects().add(new ColorEffect());
       noteFont.loadGlyphs();
+
+      helpFont = new UnicodeFont(FONT_PATH, HELP_FONT_SIZE, false, false);
+      helpFont.addAsciiGlyphs();
+      helpFont.addGlyphs(400, 600);
+      helpFont.getEffects().add(new ColorEffect());
+      helpFont.loadGlyphs();
+
     } catch (SlickException e) {
       System.out.println("Failed to create font. Exiting.");
       e.printStackTrace();
@@ -327,39 +345,57 @@ public class GUI {
       * size);
     glEnd();
 
-    // All fonts must be rendered last!
+    if (showHelp) {
+      glColor3f(1.0f, 1.0f, 1.0f);
+      glBegin(GL_QUADS);
+      glVertex2f(WINDOW_WIDTH / 4, WINDOW_HEIGHT / 4);
+      glVertex2f(3 * WINDOW_WIDTH / 4, WINDOW_HEIGHT / 4);
+      glVertex2f(3 * WINDOW_WIDTH / 4, 3 * WINDOW_HEIGHT / 4);
+      glVertex2f(WINDOW_WIDTH / 4, 3 * WINDOW_HEIGHT / 4);
+      glEnd();
 
-    // Draw clue text
-    for (Map.Entry<Integer, String> e : clueText.entrySet()) {
-      // TODO Check whether cell contains note and doesn't contain guess; draw
-      // note if so
-      clueFont.drawString(
-        BOARD_OFFSET_X + CLUE_OFFSET_X + cellWidth * (e.getKey() % size),
-        BOARD_OFFSET_Y + CLUE_OFFSET_Y + cellWidth * (e.getKey() / size),
-        e.getValue(), Color.darkGray);
-    }
-    Color normal = Color.black;
-    Color incorrect = Color.red;
-    Color guessColor;
-    // Draw guess text and note text
-    for (int i = 0; i < size; ++i) {
-      for (int j = 0; j < size; ++j) {
-        if (!incorrectCellCages.get(i).get(j)) {
-          guessColor = normal;
-        } else {
-          guessColor = incorrect;
-        }
-        if (guessGrid.get(i).get(j) > 0) {
-          guessFont.drawString(BOARD_OFFSET_X + j * cellWidth + GUESS_OFFSET_X,
-            BOARD_OFFSET_Y + i * cellWidth + GUESS_OFFSET_Y,
-            Integer.toString(guessGrid.get(i).get(j)), guessColor);
-        } else {
-          for (int k = 0; k < size; ++k) {
-            if (noteGrid.get(i).get(j).get(k)) {
-              noteFont.drawString(BOARD_OFFSET_X + j * cellWidth
-                + NOTE_OFFSET_X + 12 * (k % 3), BOARD_OFFSET_Y + i * cellWidth
-                + NOTE_OFFSET_Y + 10 * (2 - k / 3), Integer.toString(k + 1),
-                Color.blue);
+      helpFont
+        .drawString(
+          HELP_OFFSET_X + WINDOW_WIDTH / 4,
+          HELP_OFFSET_Y + WINDOW_HEIGHT / 4,
+          "Keyboard shortcuts\n F1 - help\n F2 - New Puzzle\n F3 - Brute Force Solver\n F4 - DFS Solver",
+          Color.black);
+    } else {
+      // All fonts must be rendered last!
+
+      // Draw clue text
+      for (Map.Entry<Integer, String> e : clueText.entrySet()) {
+        // TODO Check whether cell contains note and doesn't contain guess; draw
+        // note if so
+        clueFont.drawString(
+          BOARD_OFFSET_X + CLUE_OFFSET_X + cellWidth * (e.getKey() % size),
+          BOARD_OFFSET_Y + CLUE_OFFSET_Y + cellWidth * (e.getKey() / size),
+          e.getValue(), Color.darkGray);
+      }
+      Color normal = Color.black;
+      Color incorrect = Color.red;
+      Color guessColor;
+      // Draw guess text and note text
+      for (int i = 0; i < size; ++i) {
+        for (int j = 0; j < size; ++j) {
+          if (!incorrectCellCages.get(i).get(j)) {
+            guessColor = normal;
+          } else {
+            guessColor = incorrect;
+          }
+          if (guessGrid.get(i).get(j) > 0) {
+            guessFont.drawString(BOARD_OFFSET_X + j * cellWidth
+              + GUESS_OFFSET_X,
+              BOARD_OFFSET_Y + i * cellWidth + GUESS_OFFSET_Y,
+              Integer.toString(guessGrid.get(i).get(j)), guessColor);
+          } else {
+            for (int k = 0; k < size; ++k) {
+              if (noteGrid.get(i).get(j).get(k)) {
+                noteFont.drawString(BOARD_OFFSET_X + j * cellWidth
+                  + NOTE_OFFSET_X + 12 * (k % 3), BOARD_OFFSET_Y + i
+                  * cellWidth + NOTE_OFFSET_Y + 10 * (2 - k / 3),
+                  Integer.toString(k + 1), Color.blue);
+              }
             }
           }
         }
@@ -423,6 +459,9 @@ public class GUI {
         case Keyboard.KEY_9:
         case Keyboard.KEY_NUMPAD9:
           markCell(9);
+          break;
+        case Keyboard.KEY_F1:
+          showHelp = !showHelp;
           break;
         default:
           inGuessMode = !inGuessMode;
