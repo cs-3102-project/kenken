@@ -13,7 +13,8 @@ public class Driver {
     // long endTime = System.nanoTime();
     // System.out.println("Elapsed time: " + (endTime - startTime) * 0.000000001
     // + " seconds");
-    // solver.solveBruteForce();
+    BruteForceSolver solver = new BruteForceSolver(problem);
+    solver.printSolution();
     GUI gui = new GUI(problem);
     gui.gameLoop();
     gui.destroy();
