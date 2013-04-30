@@ -1,6 +1,10 @@
 package edu.virginia.kenken;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Random;
 
 public class Problem {
 
@@ -263,10 +267,10 @@ public class Problem {
     return cages;
   }
 
-  public boolean checkGrid(ArrayList<ArrayList<Integer>> attempt) {
+  public boolean checkGrid(HashMap<Integer, Integer> attempt) {
     // TODO Ensure rows and columns are also valid
     for (Cage c : cages) {
-      if (!c.isSatisfied(attempt)) {
+      if (!c.isSatisfied(size, attempt)) {
         return false;
       }
     }
@@ -274,7 +278,7 @@ public class Problem {
     boolean generatedSolutionFound = true;
     for (int i = 0; i < size; ++i) {
       for (int j = 0; j < size; ++j) {
-        if (attempt.get(i).get(j) != solution.get(i).get(j)) {
+        if (attempt.get(i * size + j) != solution.get(i).get(j)) {
           generatedSolutionFound = false;
           break;
         }

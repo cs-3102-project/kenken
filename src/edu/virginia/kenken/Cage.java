@@ -1,6 +1,5 @@
 package edu.virginia.kenken;
 
-import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
 
@@ -39,15 +38,16 @@ public class Cage extends Constraint {
     return false;
   }
 
-  public boolean isSatisfied(ArrayList<ArrayList<Integer>> entryGrid) {
+  public boolean isSatisfied(int size, HashMap<Integer, Integer> entryGrid) {
     System.out.println("This was supposed to be abstract.");
     return false;
   }
 
-  public boolean isFilled(ArrayList<ArrayList<Integer>> entryGrid) {
+  // TODO Make size a field instead of a parameter
+  public boolean isFilled(int size, HashMap<Integer, Integer> entryGrid) {
     for (int i = 0; i < getCellPositions().size(); i = i + 2) {
-      if (entryGrid.get(getCellPositions().get(i)).get(
-        getCellPositions().get(i + 1)) < 1) {
+      if (entryGrid.get(getCellPositions().get(i) * size
+        + getCellPositions().get(i + 1)) < 1) {
         return false;
       }
     }

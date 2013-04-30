@@ -52,16 +52,25 @@ public class DepthFirstSolver extends Solver {
     if (solution == null) {
       System.out.println("No solution found.");
     } else {
-      getGUI().showProgress(solution);
-
-      ArrayList<ArrayList<Integer>> matrix =
-        new ArrayList<ArrayList<Integer>>();
+      // Update display with current state
+      HashMap<Integer, Integer> solutionCopy = new HashMap<Integer, Integer>();
       for (int i = 0; i < size; ++i) {
-        matrix.add(new ArrayList<Integer>());
         for (int j = 0; j < size; ++j) {
-          matrix.get(i).add(
-            (solution.get(i * size + j).size() == 1) ? solution
-              .get(i * size + j).iterator().next() : -1);
+          if (solution.get(i * size + j).size() == 1) {
+            solutionCopy.put(i * size + j, solution.get(i * size + j)
+              .iterator().next());
+          } else {
+            solutionCopy.put(i * size + j, -1);
+          }
+        }
+      }
+      getGUI().showProgress(solutionCopy);
+
+      HashMap<Integer, Integer> matrix = new HashMap<Integer, Integer>();
+      for (int i = 0; i < size; ++i) {
+        for (int j = 0; j < size; ++j) {
+          matrix.put(i * size + j, (solution.get(i * size + j).size() == 1)
+            ? solution.get(i * size + j).iterator().next() : -1);
         }
       }
       getProblem().checkGrid(matrix);
@@ -87,6 +96,7 @@ public class DepthFirstSolver extends Solver {
     int markedInCage;
     boolean cagesSatisfied;
     HashMap<Integer, HashSet<Integer>> child;
+    HashMap<Integer, Integer> stateCopy;
 
     for (Integer v : state.get(cellID)) {
       // Quit if this branch's left sibling found a solution
@@ -97,7 +107,18 @@ public class DepthFirstSolver extends Solver {
       statesChecked += 1;
       if (statesChecked % 2000 == 0) {
         // Update display with current state
-        getGUI().showProgress(state);
+        stateCopy = new HashMap<Integer, Integer>();
+        for (int i = 0; i < size; ++i) {
+          for (int j = 0; j < size; ++j) {
+            if (state.get(i * size + j).size() == 1) {
+              stateCopy.put(i * size + j, state.get(i * size + j).iterator()
+                .next());
+            } else {
+              stateCopy.put(i * size + j, -1);
+            }
+          }
+        }
+        getGUI().showProgress(stateCopy);
       }
 
       // Copy parent state into a new child state

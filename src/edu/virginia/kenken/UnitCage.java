@@ -1,6 +1,5 @@
 package edu.virginia.kenken;
 
-import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
 
@@ -31,8 +30,8 @@ public class UnitCage extends Cage {
   }
 
   @Override
-  public boolean isSatisfied(ArrayList<ArrayList<Integer>> entryGrid) {
-    return (entryGrid.get(getCellPositions().get(0)).get(
-      getCellPositions().get(1)) == getTotal());
+  public boolean isSatisfied(int size, HashMap<Integer, Integer> entryGrid) {
+    return (entryGrid.get(getCellPositions().get(0) * size
+      + getCellPositions().get(1)) == getTotal());
   }
 }

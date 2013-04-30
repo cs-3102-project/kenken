@@ -1,6 +1,8 @@
 package edu.virginia.kenken;
 
-import java.util.*;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Iterator;
 
 public class MultiplicationCage extends Cage {
   public MultiplicationCage(Cage src) {
@@ -45,12 +47,12 @@ public class MultiplicationCage extends Cage {
   }
 
   @Override
-  public boolean isSatisfied(ArrayList<ArrayList<Integer>> entryGrid) {
+  public boolean isSatisfied(int size, HashMap<Integer, Integer> entryGrid) {
     int guessProduct = 1;
     for (int i = 0; i < getCellPositions().size(); i = i + 2) {
       guessProduct *=
-        entryGrid.get(getCellPositions().get(i)).get(
-          getCellPositions().get(i + 1));
+        entryGrid.get(getCellPositions().get(i) * size
+          + getCellPositions().get(i + 1));
     }
     return (guessProduct == getTotal());
   }

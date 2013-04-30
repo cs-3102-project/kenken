@@ -1,6 +1,8 @@
 package edu.virginia.kenken;
 
-import java.util.*;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.HashSet;
 
 public class SubtractionCage extends Cage {
   public SubtractionCage(Cage src) {
@@ -26,11 +28,10 @@ public class SubtractionCage extends Cage {
   }
 
   @Override
-  public boolean isSatisfied(ArrayList<ArrayList<Integer>> entryGrid) {
-    return (Math
-      .abs(entryGrid.get(getCellPositions().get(0)).get(
-        getCellPositions().get(1))
-        - entryGrid.get(getCellPositions().get(2)).get(
-          getCellPositions().get(3))) == getTotal());
+  public boolean isSatisfied(int size, HashMap<Integer, Integer> entryGrid) {
+    return (Math.abs(entryGrid.get(getCellPositions().get(0) * size
+      + getCellPositions().get(1))
+      - entryGrid.get(getCellPositions().get(2) * size
+        + getCellPositions().get(3))) == getTotal());
   }
 }

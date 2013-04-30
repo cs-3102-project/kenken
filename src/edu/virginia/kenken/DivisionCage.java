@@ -1,6 +1,9 @@
 package edu.virginia.kenken;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.HashSet;
 
 public class DivisionCage extends Cage {
   public DivisionCage(Cage src) {
@@ -29,11 +32,13 @@ public class DivisionCage extends Cage {
   }
 
   @Override
-  public boolean isSatisfied(ArrayList<ArrayList<Integer>> entryGrid) {
+  public boolean isSatisfied(int size, HashMap<Integer, Integer> entryGrid) {
     ArrayList<Integer> elements = new ArrayList<Integer>();
     elements.add(
-      entryGrid.get(getCellPositions().get(0)).get(getCellPositions().get(1)),
-      entryGrid.get(getCellPositions().get(2)).get(getCellPositions().get(3)));
+      entryGrid.get(getCellPositions().get(0) * size
+        + getCellPositions().get(1)),
+      entryGrid.get(getCellPositions().get(2) * size
+        + getCellPositions().get(3)));
     return (Collections.max(elements) / Collections.min(elements) == getTotal());
   }
 }
