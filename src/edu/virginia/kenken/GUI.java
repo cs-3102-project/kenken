@@ -2,6 +2,8 @@ package edu.virginia.kenken;
 
 import static org.lwjgl.opengl.GL11.*;
 
+import java.io.OutputStream;
+import java.io.PrintStream;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
@@ -62,7 +64,7 @@ public class GUI {
   private int size;
 
   // Grid of cage IDs
-  ArrayList<ArrayList<Integer>> cageIDs;
+  HashMap<Integer, Integer> cageIDs;
 
   // Cell and cages relationship
   private ArrayList<Cage> cellCages;
@@ -82,10 +84,10 @@ public class GUI {
   private HashMap<Integer, Integer> guessGrid;
 
   // Matrix of user's cell notes
-  private ArrayList<ArrayList<ArrayList<Boolean>>> noteGrid;
+  private HashMap<Integer, ArrayList<Boolean>> noteGrid;
 
   // Matrix of incorrect cells
-  private ArrayList<ArrayList<Boolean>> incorrectGrid;
+  private HashMap<Integer, Boolean> incorrectGrid;
 
   // Matrix of incorrect cell (cage)
   private ArrayList<ArrayList<Boolean>> incorrectCellCages;
@@ -103,8 +105,8 @@ public class GUI {
   // Whether or not to show help on the board
   private boolean showHelp;
 
-  public GUI(int size) {
-    setNewProblem(size);
+  public GUI(int startupSize) {
+    setNewProblem(startupSize);
     init();
   }
 
@@ -125,6 +127,25 @@ public class GUI {
     for (Cage c : problem.getCages()) {
       clueText.put(c.getCells().get(0), c.getClueText() + "");
     }
+  }
+
+  private void reset() {
+    guessGrid = new HashMap<Integer, Integer>();
+    noteGrid = new HashMap<Integer, ArrayList<Boolean>>();
+    incorrectGrid = new HashMap<Integer, Boolean>();
+    incorrectCellCages = new ArrayList<ArrayList<Boolean>>();
+    for (int i = 0; i < size; ++i) {
+      incorrectCellCages.add(new ArrayList<Boolean>());
+      for (int j = 0; j < size; ++j) {
+        guessGrid.put(i * size + j, -1);
+        noteGrid.put(i * size + j,
+          new ArrayList<Boolean>(Collections.nCopies(size, false)));
+        incorrectGrid.put(i * size + j, false);
+        incorrectCellCages.get(i).add(false);
+      }
+    }
+
+    inGuessMode = true;
   }
 
   /**
@@ -161,6 +182,14 @@ public class GUI {
     glLineWidth(LINE_WIDTH);
 
     try {
+      // Temporarily disable System.out
+      System.setOut(new PrintStream(new OutputStream() {
+        @Override
+        public void write(int b) {
+          // Do nothing
+        }
+      }));
+
       clueFont = new UnicodeFont(FONT_PATH, CLUE_FONT_SIZE, false, false);
       clueFont.addAsciiGlyphs();
       clueFont.addGlyphs(400, 600);
@@ -185,21 +214,20 @@ public class GUI {
       helpFont.getEffects().add(new ColorEffect());
       helpFont.loadGlyphs();
 
+      // Re-enable System.out
+      System.setOut(System.out);
+
     } catch (SlickException e) {
       System.out.println("Failed to create font. Exiting.");
       e.printStackTrace();
       System.exit(1);
     }
-
-    System.out.println("Window initialized.");
   }
 
   /**
    * Constantly refresh the window.
    */
   public void gameLoop() {
-    System.out.println("Main loop starting.");
-
     while (!Display.isCloseRequested()) {
       glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
       Display.sync(60);
@@ -207,14 +235,6 @@ public class GUI {
       renderFrame();
       Display.update();
     }
-  }
-
-  /**
-   * Tear down the window
-   */
-  public void destroy() {
-    Display.destroy();
-    System.out.println("Execution terminated.");
   }
 
   /**
@@ -267,7 +287,7 @@ public class GUI {
 
     for (int i = 0; i < size; ++i) {
       for (int j = 0; j < size; ++j) {
-        if (incorrectGrid.get(i).get(j) == true) {
+        if (incorrectGrid.get(i * size + j) == true) {
           // Highlight errors in red
           glColor3f(0.8f, 0.4f, 0.4f);
           glBegin(GL_QUADS);
@@ -293,23 +313,23 @@ public class GUI {
     int topNeighborID = 0;
     for (int i = 0; i < size; ++i) {
       for (int j = 0; j < size; ++j) {
-        if (cageIDs.get(j).get(i) != leftNeighborID) {
+        if (cageIDs.get(j * size + i) != leftNeighborID) {
           glBegin(GL_LINES);
           glVertex2i(BOARD_OFFSET_X + i * cellWidth, BOARD_OFFSET_Y + cellWidth
             * j);
           glVertex2i(BOARD_OFFSET_X + (i + 1) * cellWidth, BOARD_OFFSET_Y
             + cellWidth * j);
           glEnd();
-          leftNeighborID = cageIDs.get(j).get(i);
+          leftNeighborID = cageIDs.get(j * size + i);
         }
-        if (cageIDs.get(i).get(j) != topNeighborID) {
+        if (cageIDs.get(i * size + j) != topNeighborID) {
           glBegin(GL_LINES);
           glVertex2i(BOARD_OFFSET_X + j * cellWidth, BOARD_OFFSET_Y + cellWidth
             * i);
           glVertex2i(BOARD_OFFSET_X + j * cellWidth, BOARD_OFFSET_Y + cellWidth
             * (i + 1));
           glEnd();
-          topNeighborID = cageIDs.get(i).get(j);
+          topNeighborID = cageIDs.get(i * size + j);
         }
       }
     }
@@ -393,7 +413,7 @@ public class GUI {
               Integer.toString(guessGrid.get(i * size + j)), guessColor);
           } else {
             for (int k = 0; k < size; ++k) {
-              if (noteGrid.get(i).get(j).get(k)) {
+              if (noteGrid.get(i * size + j).get(k)) {
                 noteFont.drawString(BOARD_OFFSET_X + j * cellWidth
                   + NOTE_OFFSET_X + 12 * (k % 3), BOARD_OFFSET_Y + i
                   * cellWidth + NOTE_OFFSET_Y + 10 * (2 - k / 3),
@@ -477,11 +497,18 @@ public class GUI {
         case Keyboard.KEY_F4:
           showHelp = false;
           BruteForceSolver bf = new BruteForceSolver(this, problem);
-          bf.printSolution();
+          bf.startTimer();
+          bf.solve();
+          bf.stopTimer();
+          bf.printElapsedTime();
           break;
         case Keyboard.KEY_F5:
           showHelp = false;
-          new DepthFirstSolver(this, problem);
+          DepthFirstSolver dfs = new DepthFirstSolver(this, problem);
+          dfs.startTimer();
+          dfs.solve();
+          dfs.stopTimer();
+          dfs.printElapsedTime();
           break;
         default:
           inGuessMode = !inGuessMode;
@@ -507,16 +534,17 @@ public class GUI {
         }
         for (int i = 0; i < size; ++i) {
           if (currRow.get(i) < 0) {
-            incorrectGrid.get(hoverCellY).set(i, false);
+            incorrectGrid.put(hoverCellY * size + i, false);
           } else {
             if (currRow.lastIndexOf(Integer.valueOf(currRow.get(i))) != i) {
-              incorrectGrid.get(hoverCellY).set(i, true);
-              incorrectGrid.get(hoverCellY).set(
-                currRow.lastIndexOf(Integer.valueOf(currRow.get(i))), true);
+              incorrectGrid.put(hoverCellY * size + i, true);
+              incorrectGrid.put(
+                hoverCellY * size
+                  + currRow.lastIndexOf(Integer.valueOf(currRow.get(i))), true);
             }
             if (Collections.frequency(currRow, currRow.get(i)) < 2
-              && incorrectGrid.get(hoverCellY).get(i) == true) {
-              incorrectGrid.get(hoverCellY).set(i, false);
+              && incorrectGrid.get(hoverCellY * size + i) == true) {
+              incorrectGrid.put(hoverCellY * size + i, false);
             }
           }
         }
@@ -528,19 +556,19 @@ public class GUI {
         }
         for (int i = 0; i < size; ++i) {
           if (currCol.get(i) < 0) {
-            incorrectGrid.get(i).set(hoverCellX, false);
+            incorrectGrid.put(i * size + hoverCellX, false);
           } else {
             if (currCol.lastIndexOf(Integer.valueOf(currCol.get(i))) != i) {
-              incorrectGrid.get(i).set(hoverCellX, true);
-              incorrectGrid.get(
-                currCol.lastIndexOf(Integer.valueOf(currCol.get(i)))).set(
-                hoverCellX, true);
+              incorrectGrid.put(i * size + hoverCellX, true);
+              incorrectGrid.put(
+                currCol.lastIndexOf(Integer.valueOf(currCol.get(i))) * size
+                  + hoverCellX, true);
 
             }
             if (Collections.frequency(currCol, currCol.get(i)) < 2
               && Collections.frequency(currRow, currCol.get(i)) < 2
-              && incorrectGrid.get(i).get(hoverCellX) == true) {
-              incorrectGrid.get(i).set(hoverCellX, false);
+              && incorrectGrid.get(i * size + hoverCellX) == true) {
+              incorrectGrid.put(i * size + hoverCellX, false);
 
               // Yes, recheck ALL the rows again
               for (int j = 0; j < size; ++j) {
@@ -550,12 +578,15 @@ public class GUI {
                 }
                 for (int k = 0; k < size; ++k) {
                   if (row.get(k) < 0) {
-                    incorrectGrid.get(j).set(k, false);
+                    incorrectGrid.put(j * size + k, false);
                   } else {
                     if (row.lastIndexOf(Integer.valueOf(row.get(k))) != k) {
-                      incorrectGrid.get(j).set(k, true);
-                      incorrectGrid.get(j).set(
-                        row.lastIndexOf(Integer.valueOf(row.get(k))), true);
+                      incorrectGrid.put(j * size + k, true);
+                      incorrectGrid
+                        .put(
+                          j * size
+                            + row.lastIndexOf(Integer.valueOf(row.get(k))),
+                          true);
                     }
                   }
                 }
@@ -587,34 +618,13 @@ public class GUI {
 
       } else {
         // Mark note
-        if (noteGrid.get(hoverCellY).get(hoverCellX).get(n - 1)) {
-          noteGrid.get(hoverCellY).get(hoverCellX).set(n - 1, false);
+        if (noteGrid.get(hoverCellY * size + hoverCellX).get(n - 1)) {
+          noteGrid.get(hoverCellY * size + hoverCellX).set(n - 1, false);
         } else {
-          noteGrid.get(hoverCellY).get(hoverCellX).set(n - 1, true);
+          noteGrid.get(hoverCellY * size + hoverCellX).set(n - 1, true);
         }
       }
     }
-  }
-
-  private void reset() {
-    guessGrid = new HashMap<Integer, Integer>();
-    noteGrid = new ArrayList<ArrayList<ArrayList<Boolean>>>();
-    incorrectGrid = new ArrayList<ArrayList<Boolean>>();
-    incorrectCellCages = new ArrayList<ArrayList<Boolean>>();
-    for (int i = 0; i < size; ++i) {
-      noteGrid.add(new ArrayList<ArrayList<Boolean>>());
-      incorrectGrid.add(new ArrayList<Boolean>());
-      incorrectCellCages.add(new ArrayList<Boolean>());
-      for (int j = 0; j < size; ++j) {
-        guessGrid.put(i * size + j, -1);
-        noteGrid.get(i).add(
-          new ArrayList<Boolean>(Collections.nCopies(size, false)));
-        incorrectGrid.get(i).add(false);
-        incorrectCellCages.get(i).add(false);
-      }
-    }
-
-    inGuessMode = true;
   }
 
   public void showProgress(HashMap<Integer, Integer> state) {
@@ -623,5 +633,12 @@ public class GUI {
     guessGrid = state;
     renderFrame();
     Display.update();
+  }
+
+  /**
+   * Tear down the window
+   */
+  public void destroy() {
+    Display.destroy();
   }
 }

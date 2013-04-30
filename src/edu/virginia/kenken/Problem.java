@@ -9,8 +9,8 @@ import java.util.Random;
 public class Problem {
 
   private final int size;
-  private final ArrayList<ArrayList<Integer>> grid;
-  private final ArrayList<ArrayList<Integer>> solution;
+  private final HashMap<Integer, Integer> grid;
+  private final HashMap<Integer, Integer> solution;
   private int numCages;
   private ArrayList<Cage> cages;
   private final ArrayList<Cage> cellCages;
@@ -18,55 +18,66 @@ public class Problem {
 
   public Problem(int size) {
     this.size = size;
-    grid = new ArrayList<ArrayList<Integer>>();
+    grid = new HashMap<Integer, Integer>();
     numCages = 0;
     cages = new ArrayList<Cage>();
     rand = new Random();
     cellCages =
       new ArrayList<Cage>(Collections.nCopies(size * size, new Cage()));
-    solution = new ArrayList<ArrayList<Integer>>();
+    ArrayList<ArrayList<Integer>> solutionArray =
+      new ArrayList<ArrayList<Integer>>();
 
     // Start with a legal, non-random board
 
     for (int i = 0; i < size; ++i) {
-      solution.add(new ArrayList<Integer>());
+      solutionArray.add(new ArrayList<Integer>());
       for (int j = 0; j < size; ++j) {
-        solution.get(i).add((i + j) % size + 1);
+        solutionArray.get(i).add((i + j) % size + 1);
       }
     }
 
     // Shuffle rows
 
-    Collections.shuffle(solution);
+    Collections.shuffle(solutionArray);
 
     // Transpose board matrix
 
     int tmp;
     for (int i = 0; i < size; ++i) {
       for (int j = 0; j < i; ++j) {
-        tmp = solution.get(i).get(j);
-        solution.get(i).set(j, solution.get(j).get(i));
-        solution.get(j).set(i, tmp);
+        tmp = solutionArray.get(i).get(j);
+        solutionArray.get(i).set(j, solutionArray.get(j).get(i));
+        solutionArray.get(j).set(i, tmp);
       }
     }
 
     // Shuffle rows (which were the columns before transposition) again
 
-    Collections.shuffle(solution);
+    Collections.shuffle(solutionArray);
 
     // Print matrix (for testing only)
 
+    System.out.println("Generated solution:");
     for (int i = 0; i < size; ++i) {
       for (int j = 0; j < size; ++j) {
-        System.out.print(solution.get(i).get(j));
+        System.out.print(solutionArray.get(i).get(j));
       }
       System.out.print("\n");
+    }
+    System.out.println("");
+
+    // Copy temporary solution arrays into hashmap
+    solution = new HashMap<Integer, Integer>();
+    for (int i = 0; i < size; ++i) {
+      for (int j = 0; j < size; ++j) {
+        solution.put(i * size + j, solutionArray.get(i).get(j));
+      }
     }
 
     // Initialize cageIDs
 
-    for (int i = 0; i < size; ++i) {
-      grid.add(new ArrayList<Integer>(Collections.nCopies(size, -1)));
+    for (int i = 0; i < size * size; ++i) {
+      grid.put(i, -1);
     }
 
     ArrayList<String> directions = new ArrayList<String>();
@@ -109,7 +120,7 @@ public class Problem {
       boardFull = true;
       for (int i = 0; i < size; ++i) {
         for (int j = 0; j < size; ++j) {
-          if (grid.get(i).get(j) < 0) {
+          if (grid.get(i * size + j) < 0) {
             curX = j;
             curY = i;
             boardFull = false;
@@ -147,8 +158,8 @@ public class Problem {
       cage.add(curY * size + curX);
       cageCells.add(curY * size + curX);
       cage.addPosition(curY, curX);
-      cage.addElement(solution.get(curY).get(curX));
-      grid.get(curY).set(curX, curID);
+      cage.addElement(solution.get(curY * size + curX));
+      grid.put(curY * size + curX, curID);
       cageSize = 1;
 
       // Grow cage, cell by cell
@@ -182,7 +193,7 @@ public class Problem {
               break;
           }
           if (nextX >= 0 && nextX < size && nextY >= 0 && nextY < size) {
-            if (grid.get(nextY).get(nextX) == -1) {
+            if (grid.get(nextY * size + nextX) == -1) {
               growable = true;
               break;
             }
@@ -194,8 +205,8 @@ public class Problem {
           cage.add(nextY * size + nextX);
           cageCells.add(nextY * size + nextX);
           cage.addPosition(nextY, nextX);
-          cage.addElement(solution.get(nextY).get(nextX));
-          grid.get(nextY).set(nextX, curID);
+          cage.addElement(solution.get(nextY * size + nextX));
+          grid.put(nextY * size + nextX, curID);
           curX = nextX;
           curY = nextY;
           cageSize += 1;
@@ -247,15 +258,15 @@ public class Problem {
 
     numCages = curID + 1;
 
-    System.out.println("Number of cages: " + numCages);
-    System.out.println("Cage size distribution: " + sizeDistribution);
+    // System.out.println("Number of cages: " + numCages);
+    // System.out.println("Cage size distribution: " + sizeDistribution);
   }
 
   public int getSize() {
     return size;
   }
 
-  public ArrayList<ArrayList<Integer>> getGrid() {
+  public HashMap<Integer, Integer> getGrid() {
     return grid;
   }
 
@@ -278,7 +289,7 @@ public class Problem {
     boolean generatedSolutionFound = true;
     for (int i = 0; i < size; ++i) {
       for (int j = 0; j < size; ++j) {
-        if (attempt.get(i * size + j) != solution.get(i).get(j)) {
+        if (attempt.get(i * size + j) != solution.get(i * size + j)) {
           generatedSolutionFound = false;
           break;
         }

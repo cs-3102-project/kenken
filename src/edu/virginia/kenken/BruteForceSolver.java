@@ -1,9 +1,10 @@
 package edu.virginia.kenken;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 
 public class BruteForceSolver extends Solver {
-  private ArrayList<ArrayList<Integer>> solution;
+  private HashMap<Integer, Integer> solution;
   private final int size;
   private long statesChecked;
 
@@ -11,17 +12,18 @@ public class BruteForceSolver extends Solver {
     super(gui, problem);
 
     size = problem.getSize();
-    solution = new ArrayList<ArrayList<Integer>>();
+    solution = new HashMap<Integer, Integer>();
     statesChecked = -1;
+  }
 
+  public void solve() {
     if (solution.size() > 0) {
       System.out.println("The board has already been solved.");
       return;
     }
 
-    ArrayList<ArrayList<Integer>> attempt = new ArrayList<ArrayList<Integer>>();
-    ArrayList<ArrayList<Integer>> template =
-      new ArrayList<ArrayList<Integer>>();
+    HashMap<Integer, Integer> attempt = new HashMap<Integer, Integer>();
+    HashMap<Integer, Integer> template = new HashMap<Integer, Integer>();
 
     // Start with a legal, non-random board
     ArrayList<Integer> rowPermutation = new ArrayList<Integer>();
@@ -29,16 +31,18 @@ public class BruteForceSolver extends Solver {
     for (int i = 0; i < size; ++i) {
       rowPermutation.add(i + 1);
       colPermutation.add(i + 1);
-      attempt.add(new ArrayList<Integer>());
-      template.add(new ArrayList<Integer>());
       for (int j = 0; j < size; ++j) {
-        attempt.get(i).add((i + j) % size + 1);
-        template.get(i).add((i + j) % size + 1);
+        attempt.put(i * size + j, (i + j) % size + 1);
+        template.put(i * size + j, (i + j) % size + 1);
       }
     }
     statesChecked = 1;
-    while (!problem.checkGrid(attempt)) {
+    while (!getProblem().checkGrid(attempt)) {
       statesChecked += 1;
+
+      if (statesChecked % 65536 == 0) {
+        getGUI().showProgress(attempt);
+      }
 
       // Get next permutations of rows and columns
       if (!nextPermutation(rowPermutation)) {
@@ -52,10 +56,10 @@ public class BruteForceSolver extends Solver {
       // Reassign attempt grid values as specified by permutations
       for (int i = 0; i < size; ++i) {
         for (int j = 0; j < size; ++j) {
-          attempt.get(i).set(
-            j,
-            template.get(colPermutation.get(i) - 1).get(
-              rowPermutation.get(j) - 1));
+          attempt.put(
+            i * size + j,
+            template.get((colPermutation.get(i) - 1) * size
+              + rowPermutation.get(j) - 1));
         }
       }
     }
@@ -67,7 +71,7 @@ public class BruteForceSolver extends Solver {
     return statesChecked;
   }
 
-  public ArrayList<ArrayList<Integer>> getSolution() {
+  public HashMap<Integer, Integer> getSolution() {
     return solution;
   }
 

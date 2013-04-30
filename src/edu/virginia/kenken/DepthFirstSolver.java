@@ -14,12 +14,13 @@ public class DepthFirstSolver extends Solver {
   public DepthFirstSolver(GUI gui, Problem problem) {
     super(gui, problem);
 
-    System.out.println("Starting");
-
     size = problem.getSize();
     cages = problem.getCages();
     solutionFound = false;
     statesChecked = 0;
+  }
+
+  public void solve() {
 
     // Initialize grid of guesses to all empty
     HashMap<Integer, HashSet<Integer>> root =
@@ -33,7 +34,6 @@ public class DepthFirstSolver extends Solver {
         root.get(i).add(j);
       }
     }
-
     // Get easy stuff done first - mark all UnitCages and recurse through
     // their peers, marking them if possible too
     for (Cage c : cages) {
@@ -105,7 +105,7 @@ public class DepthFirstSolver extends Solver {
       }
 
       statesChecked += 1;
-      if (statesChecked % 2000 == 0) {
+      if (statesChecked % 4096 == 0) {
         // Update display with current state
         stateCopy = new HashMap<Integer, Integer>();
         for (int i = 0; i < size; ++i) {
