@@ -2,15 +2,17 @@ package edu.virginia.kenken;
 
 import java.util.ArrayList;
 
-public class BruteForceSolver {
+public class BruteForceSolver extends Solver {
   private ArrayList<ArrayList<Integer>> solution;
   private final int size;
-  private long attempts;
+  private long statesChecked;
 
-  public BruteForceSolver(Problem problem) {
+  public BruteForceSolver(GUI gui, Problem problem) {
+    super(gui, problem);
+
     size = problem.getSize();
     solution = new ArrayList<ArrayList<Integer>>();
-    attempts = -1;
+    statesChecked = -1;
 
     if (solution.size() > 0) {
       System.out.println("The board has already been solved.");
@@ -34,9 +36,9 @@ public class BruteForceSolver {
         template.get(i).add((i + j) % size + 1);
       }
     }
-    attempts = 1;
+    statesChecked = 1;
     while (!problem.checkGrid(attempt)) {
-      attempts += 1;
+      statesChecked += 1;
 
       // Get next permutations of rows and columns
       if (!nextPermutation(rowPermutation)) {
@@ -61,8 +63,8 @@ public class BruteForceSolver {
     solution = attempt;
   }
 
-  public long getAttempts() {
-    return attempts;
+  public long getStatesChecked() {
+    return statesChecked;
   }
 
   public ArrayList<ArrayList<Integer>> getSolution() {

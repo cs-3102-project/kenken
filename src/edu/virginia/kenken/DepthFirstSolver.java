@@ -4,23 +4,23 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
 
-public class DepthFirstSolver {
-  private final Problem problem;
+public class DepthFirstSolver extends Solver {
   private final int size;
   private final ArrayList<Cage> cages;
   private boolean solutionFound;
   private HashMap<Integer, HashSet<Integer>> solution;
   private int statesChecked;
 
-  public DepthFirstSolver(Problem problem) {
-    this.problem = problem;
+  public DepthFirstSolver(GUI gui, Problem problem) {
+    super(gui, problem);
+
+    System.out.println("Starting");
+
     size = problem.getSize();
     cages = problem.getCages();
     solutionFound = false;
     statesChecked = 0;
-  }
 
-  public void solve() {
     // Initialize grid of guesses to all empty
     HashMap<Integer, HashSet<Integer>> root =
       new HashMap<Integer, HashSet<Integer>>();
@@ -52,6 +52,8 @@ public class DepthFirstSolver {
     if (solution == null) {
       System.out.println("No solution found.");
     } else {
+      getGUI().showProgress(solution);
+
       ArrayList<ArrayList<Integer>> matrix =
         new ArrayList<ArrayList<Integer>>();
       for (int i = 0; i < size; ++i) {
@@ -62,7 +64,7 @@ public class DepthFirstSolver {
               .get(i * size + j).iterator().next() : -1);
         }
       }
-      problem.checkGrid(matrix);
+      getProblem().checkGrid(matrix);
       printState(solution);
       System.out.println("States checked: " + statesChecked);
     }
@@ -93,9 +95,9 @@ public class DepthFirstSolver {
       }
 
       statesChecked += 1;
-      if (statesChecked % 1000000 == 0) {
-        System.out.println("DFS has checked " + statesChecked * 0.000001
-          + " states");
+      if (statesChecked % 2000 == 0) {
+        // Update display with current state
+        getGUI().showProgress(state);
       }
 
       // Copy parent state into a new child state

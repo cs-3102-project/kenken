@@ -2,7 +2,12 @@ package edu.virginia.kenken;
 
 import static org.lwjgl.opengl.GL11.*;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Map;
+import java.util.TreeMap;
 
 import org.lwjgl.LWJGLException;
 import org.lwjgl.input.Keyboard;
@@ -44,12 +49,15 @@ public class GUI {
   private static final int NOTE_OFFSET_Y = 15;
   private static final int NOTE_FONT_SIZE = 10;
 
-  // Instruction constants
-  private static final int HELP_OFFSET_X = 10;
-  private static final int HELP_OFFSET_Y = 15;
+  // Help text constants
+  private static final int HELP_OFFSET_X = 7;
+  private static final int HELP_OFFSET_Y = 9;
   private static final int HELP_FONT_SIZE = 20;
 
   private static final String FONT_PATH = "res/DroidSans.ttf";
+
+  // Current problem
+  private Problem problem;
 
   // Height (or width) of problem in cells
   private int size;
@@ -96,43 +104,28 @@ public class GUI {
   // Whether or not to show help on the board
   private boolean showHelp;
 
-  public GUI(Problem problem) {
-    setProblem(problem);
+  public GUI(int size) {
+    setNewProblem(size);
     init();
   }
 
   /*
    * Load a new problem instance into the main window.
    */
-  private void setProblem(Problem problem) {
-    size = problem.getSize();
+  private void setNewProblem(int size) {
+    this.size = size;
     cellWidth = BOARD_WIDTH / size;
+
+    problem = new Problem(size);
     cageIDs = problem.getGrid();
     cellCages = problem.getCellCages();
 
-    guessGrid = new ArrayList<ArrayList<Integer>>();
-    noteGrid = new ArrayList<ArrayList<ArrayList<Boolean>>>();
-    incorrectGrid = new ArrayList<ArrayList<Boolean>>();
-    incorrectCellCages = new ArrayList<ArrayList<Boolean>>();
-    for (int i = 0; i < size; ++i) {
-      guessGrid.add(new ArrayList<Integer>(Collections.nCopies(size, -1)));
-      noteGrid.add(new ArrayList<ArrayList<Boolean>>());
-      incorrectGrid.add(new ArrayList<Boolean>());
-      incorrectCellCages.add(new ArrayList<Boolean>());
-      for (int j = 0; j < size; ++j) {
-        noteGrid.get(i).add(
-          new ArrayList<Boolean>(Collections.nCopies(size, false)));
-        incorrectGrid.get(i).add(false);
-        incorrectCellCages.get(i).add(false);
-      }
-    }
+    reset();
 
     clueText = new TreeMap<Integer, String>();
     for (Cage c : problem.getCages()) {
       clueText.put(c.getCells().get(0), c.getClueText() + "");
     }
-
-    inGuessMode = true;
   }
 
   /**
@@ -345,20 +338,31 @@ public class GUI {
       * size);
     glEnd();
 
+    // TODO Make overlay dimensions dependent on text size, not window size
     if (showHelp) {
+      // Fade board
+      glColor4f(0.0f, 0.0f, 0.0f, 0.8f);
+      glBegin(GL_QUADS);
+      glVertex2f(0, 0);
+      glVertex2f(WINDOW_WIDTH, 0);
+      glVertex2f(WINDOW_WIDTH, WINDOW_HEIGHT);
+      glVertex2f(0, WINDOW_HEIGHT);
+      glEnd();
+
+      // Modal overlay
       glColor3f(1.0f, 1.0f, 1.0f);
       glBegin(GL_QUADS);
-      glVertex2f(WINDOW_WIDTH / 4, WINDOW_HEIGHT / 4);
-      glVertex2f(3 * WINDOW_WIDTH / 4, WINDOW_HEIGHT / 4);
-      glVertex2f(3 * WINDOW_WIDTH / 4, 3 * WINDOW_HEIGHT / 4);
-      glVertex2f(WINDOW_WIDTH / 4, 3 * WINDOW_HEIGHT / 4);
+      glVertex2f(WINDOW_WIDTH * 0.25f, WINDOW_HEIGHT * 0.33f);
+      glVertex2f(WINDOW_WIDTH * 0.75f, WINDOW_HEIGHT * 0.33f);
+      glVertex2f(WINDOW_WIDTH * 0.75f, WINDOW_HEIGHT * 0.67f);
+      glVertex2f(WINDOW_WIDTH * 0.25f, WINDOW_HEIGHT * 0.67f);
       glEnd();
 
       helpFont
         .drawString(
-          HELP_OFFSET_X + WINDOW_WIDTH / 4,
-          HELP_OFFSET_Y + WINDOW_HEIGHT / 4,
-          "Keyboard shortcuts\n F1 - help\n F2 - New Puzzle\n F3 - Brute Force Solver\n F4 - DFS Solver",
+          HELP_OFFSET_X + WINDOW_WIDTH * 0.25f,
+          HELP_OFFSET_Y + WINDOW_HEIGHT * 0.33f,
+          "F1: HELP\nF2: RESET\nF3: NEW PUZZLE\nF4: BRUTE FORCE SOLVER\nF5: DFS SOLVER",
           Color.black);
     } else {
       // All fonts must be rendered last!
@@ -462,6 +466,23 @@ public class GUI {
           break;
         case Keyboard.KEY_F1:
           showHelp = !showHelp;
+          break;
+        case Keyboard.KEY_F2:
+          showHelp = false;
+          reset();
+          break;
+        case Keyboard.KEY_F3:
+          showHelp = false;
+          setNewProblem(size);
+          break;
+        case Keyboard.KEY_F4:
+          showHelp = false;
+          BruteForceSolver bf = new BruteForceSolver(this, problem);
+          bf.printSolution();
+          break;
+        case Keyboard.KEY_F5:
+          showHelp = false;
+          new DepthFirstSolver(this, problem);
           break;
         default:
           inGuessMode = !inGuessMode;
@@ -570,5 +591,42 @@ public class GUI {
         }
       }
     }
+  }
+
+  private void reset() {
+    guessGrid = new ArrayList<ArrayList<Integer>>();
+    noteGrid = new ArrayList<ArrayList<ArrayList<Boolean>>>();
+    incorrectGrid = new ArrayList<ArrayList<Boolean>>();
+    incorrectCellCages = new ArrayList<ArrayList<Boolean>>();
+    for (int i = 0; i < size; ++i) {
+      guessGrid.add(new ArrayList<Integer>(Collections.nCopies(size, -1)));
+      noteGrid.add(new ArrayList<ArrayList<Boolean>>());
+      incorrectGrid.add(new ArrayList<Boolean>());
+      incorrectCellCages.add(new ArrayList<Boolean>());
+      for (int j = 0; j < size; ++j) {
+        noteGrid.get(i).add(
+          new ArrayList<Boolean>(Collections.nCopies(size, false)));
+        incorrectGrid.get(i).add(false);
+        incorrectCellCages.get(i).add(false);
+      }
+    }
+
+    inGuessMode = true;
+  }
+
+  public void showProgress(HashMap<Integer, HashSet<Integer>> state) {
+    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+    Display.sync(60);
+    for (int i = 0; i < size; ++i) {
+      for (int j = 0; j < size; ++j) {
+        if (state.get(i * size + j).size() == 1) {
+          guessGrid.get(i).set(j, state.get(i * size + j).iterator().next());
+        } else {
+          guessGrid.get(i).set(j, -1);
+        }
+      }
+    }
+    renderFrame();
+    Display.update();
   }
 }
