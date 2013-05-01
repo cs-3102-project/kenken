@@ -20,7 +20,7 @@ public class AdditionCage extends Cage {
   }
 
   @Override
-  public void preprocess(HashMap<Integer, HashSet<Integer>> state) {
+  public void preprocess(int size, HashMap<Integer, HashSet<Integer>> state) {
     Iterator<Integer> it;
     for (Integer cellID : getCells()) {
       it = state.get(cellID).iterator();

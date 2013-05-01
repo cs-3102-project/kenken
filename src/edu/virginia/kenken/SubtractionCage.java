@@ -3,6 +3,7 @@ package edu.virginia.kenken;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.Iterator;
 
 public class SubtractionCage extends Cage {
   public SubtractionCage(Cage src) {
@@ -14,6 +15,22 @@ public class SubtractionCage extends Cage {
   @Override
   public String getClueText() {
     return getTotal() + "-";
+  }
+
+  @Override
+  public void preprocess(int size, HashMap<Integer, HashSet<Integer>> state) {
+    Iterator<Integer> it;
+    int value;
+    for (Integer cellID : getCells()) {
+      it = state.get(cellID).iterator();
+      while (it.hasNext()) {
+        value = it.next();
+        if (value > size - getTotal() && value <= getTotal()) {
+          it.remove();
+        }
+      }
+    }
+    return;
   }
 
   @Override

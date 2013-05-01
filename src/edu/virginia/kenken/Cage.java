@@ -28,7 +28,7 @@ public class Cage extends Constraint {
     this.total = total;
   }
 
-  public void preprocess(HashMap<Integer, HashSet<Integer>> state) {
+  public void preprocess(int size, HashMap<Integer, HashSet<Integer>> state) {
     return;
   }
 

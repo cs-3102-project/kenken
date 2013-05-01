@@ -65,6 +65,7 @@ public class BruteForceSolver extends Solver {
     }
 
     solution = attempt;
+    getGUI().showProgress(solution);
   }
 
   public long getStatesChecked() {

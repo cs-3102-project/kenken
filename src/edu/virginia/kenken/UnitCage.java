@@ -15,7 +15,7 @@ public class UnitCage extends Cage {
   }
 
   @Override
-  public void preprocess(HashMap<Integer, HashSet<Integer>> state) {
+  public void preprocess(int size, HashMap<Integer, HashSet<Integer>> state) {
     state.get(getCells().get(0)).clear();
     state.get(getCells().get(0)).add(getTotal());
     return;

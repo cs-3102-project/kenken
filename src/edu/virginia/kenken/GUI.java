@@ -4,7 +4,11 @@ import static org.lwjgl.opengl.GL11.*;
 
 import java.io.OutputStream;
 import java.io.PrintStream;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.TreeMap;
 
 import org.lwjgl.LWJGLException;
 import org.lwjgl.input.Keyboard;
@@ -47,8 +51,8 @@ public class GUI {
   private static final int NOTE_FONT_SIZE = 10;
 
   // Help text constants
-  private static final int HELP_OFFSET_X = -20;
-  private static final int HELP_OFFSET_Y = 9;
+  private static final int HELP_OFFSET_X = 19;
+  private static final int HELP_OFFSET_Y = 22;
   private static final int HELP_FONT_SIZE = 20;
 
   private static final String FONT_PATH = "res/DroidSans.ttf";
@@ -368,18 +372,22 @@ public class GUI {
       // Modal overlay
       glColor3f(1.0f, 1.0f, 1.0f);
       glBegin(GL_QUADS);
-      glVertex2f(WINDOW_WIDTH * 0.20f, WINDOW_HEIGHT * 0.35f);
-      glVertex2f(WINDOW_WIDTH * 0.80f, WINDOW_HEIGHT * 0.35f);
-      glVertex2f(WINDOW_WIDTH * 0.80f, WINDOW_HEIGHT * 0.65f);
-      glVertex2f(WINDOW_WIDTH * 0.20f, WINDOW_HEIGHT * 0.65f);
+      glVertex2f(WINDOW_WIDTH * 0.1f, WINDOW_HEIGHT * 0.15f);
+      glVertex2f(WINDOW_WIDTH * 0.9f, WINDOW_HEIGHT * 0.15f);
+      glVertex2f(WINDOW_WIDTH * 0.9f, WINDOW_HEIGHT * 0.85f);
+      glVertex2f(WINDOW_WIDTH * 0.1f, WINDOW_HEIGHT * 0.85f);
       glEnd();
 
-      helpFont
-        .drawString(
-          HELP_OFFSET_X + WINDOW_WIDTH * 0.25f,
-          HELP_OFFSET_Y + WINDOW_HEIGHT * 0.33f,
-          "F1: HELP\nF2: RESET\nF3 - F9: NEW PUZZLE SIZES 3 - 9 \nF10: BRUTE FORCE SOLVER\nF11: DFS SOLVER\nOTHER: TOGGLE GUESS MODE",
-          Color.black);
+      helpFont.drawString(HELP_OFFSET_X + WINDOW_WIDTH * 0.1f, HELP_OFFSET_Y
+        + WINDOW_HEIGHT * 0.15f,
+        "F1:\nF2:\nF3:\nF4:\nF5:\nF6:\nF7:\nF8:\nF9:\nF10:\nF11:\nOTHER:",
+        Color.black);
+      helpFont.drawString(HELP_OFFSET_X + WINDOW_WIDTH * 0.1f + 85,
+        HELP_OFFSET_Y + WINDOW_HEIGHT * 0.15f,
+        "HELP\nRESET\nNEW 3x3 PUZZLE\nNEW 4x4 PUZZLE\nNEW 5x5 PUZZLE\n"
+          + "NEW 6x6 PUZZLE\nNEW 7x7 PUZZLE\nNEW 8x8 PUZZLE\n"
+          + "NEW 9x9 PUZZLE\nSOLVE (BRUTE FORCE)\nSOLVE (DFS)\n"
+          + "TOGGLE GUESS/NOTE MODE", Color.black);
     } else {
       // All fonts must be rendered last!
 

@@ -37,7 +37,7 @@ public class DepthFirstSolver extends Solver {
     // Get easy stuff done first - mark all UnitCages and recurse through
     // their peers, marking them if possible too
     for (Cage c : cages) {
-      c.preprocess(root);
+      c.preprocess(size, root);
       if (c.getCells().size() == 1) {
         trimPeers(c.getCells().get(0), c.getTotal(), root);
       }
