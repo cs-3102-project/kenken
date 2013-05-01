@@ -53,18 +53,7 @@ public class DepthFirstSolver extends Solver {
       System.out.println("No solution found.");
     } else {
       // Update display with current state
-      HashMap<Integer, Integer> solutionCopy = new HashMap<Integer, Integer>();
-      for (int i = 0; i < size; ++i) {
-        for (int j = 0; j < size; ++j) {
-          if (solution.get(i * size + j).size() == 1) {
-            solutionCopy.put(i * size + j, solution.get(i * size + j)
-              .iterator().next());
-          } else {
-            solutionCopy.put(i * size + j, -1);
-          }
-        }
-      }
-      getGUI().showProgress(solutionCopy);
+      getGUI().showProgress(solution);
 
       // HashMap<Integer, Integer> matrix = new HashMap<Integer, Integer>();
       // for (int i = 0; i < size; ++i) {
@@ -75,7 +64,6 @@ public class DepthFirstSolver extends Solver {
       // }
       // getProblem().checkGrid(matrix);
       getProblem().checkGrid(solution);
-      printState(solution);
       System.out.println("States checked: " + statesChecked);
     }
   }
@@ -97,7 +85,6 @@ public class DepthFirstSolver extends Solver {
     int markedInCage;
     boolean cagesSatisfied;
     HashMap<Integer, HashSet<Integer>> child;
-    HashMap<Integer, Integer> stateCopy;
 
     for (Integer v : state.get(cellID)) {
       // Quit if this branch's left sibling found a solution
@@ -108,18 +95,7 @@ public class DepthFirstSolver extends Solver {
       statesChecked += 1;
       if (statesChecked % 4096 == 0) {
         // Update display with current state
-        stateCopy = new HashMap<Integer, Integer>();
-        for (int i = 0; i < size; ++i) {
-          for (int j = 0; j < size; ++j) {
-            if (state.get(i * size + j).size() == 1) {
-              stateCopy.put(i * size + j, state.get(i * size + j).iterator()
-                .next());
-            } else {
-              stateCopy.put(i * size + j, -1);
-            }
-          }
-        }
-        getGUI().showProgress(stateCopy);
+        getGUI().showProgress(state);
       }
 
       // Copy parent state into a new child state
@@ -258,14 +234,14 @@ public class DepthFirstSolver extends Solver {
     return clone;
   }
 
-  private void printState(HashMap<Integer, HashSet<Integer>> state) {
-    for (int i = 0; i < size; ++i) {
-      for (int j = 0; j < size; ++j) {
-        System.out.print(state.get(i * size + j).iterator().next());
-      }
-      System.out.println("");
-    }
-  }
+  // private void printState(HashMap<Integer, HashSet<Integer>> state) {
+  // for (int i = 0; i < size; ++i) {
+  // for (int j = 0; j < size; ++j) {
+  // System.out.print(state.get(i * size + j).iterator().next());
+  // }
+  // System.out.println("");
+  // }
+  // }
 
   // TODO Remove this function after information gain is implemented
   private int firstSeedable(HashMap<Integer, HashSet<Integer>> state) {

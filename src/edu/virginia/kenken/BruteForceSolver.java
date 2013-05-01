@@ -2,9 +2,10 @@ package edu.virginia.kenken;
 
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.HashSet;
 
 public class BruteForceSolver extends Solver {
-  private HashMap<Integer, Integer> solution;
+  private HashMap<Integer, HashSet<Integer>> solution;
   private final int size;
   private long statesChecked;
 
@@ -12,7 +13,7 @@ public class BruteForceSolver extends Solver {
     super(gui, problem);
 
     size = problem.getSize();
-    solution = new HashMap<Integer, Integer>();
+    solution = new HashMap<Integer, HashSet<Integer>>();
     statesChecked = -1;
   }
 
@@ -22,8 +23,10 @@ public class BruteForceSolver extends Solver {
       return;
     }
 
-    HashMap<Integer, Integer> attempt = new HashMap<Integer, Integer>();
-    HashMap<Integer, Integer> template = new HashMap<Integer, Integer>();
+    HashMap<Integer, HashSet<Integer>> attempt =
+      new HashMap<Integer, HashSet<Integer>>();
+    HashMap<Integer, HashSet<Integer>> template =
+      new HashMap<Integer, HashSet<Integer>>();
 
     // Start with a legal, non-random board
     ArrayList<Integer> rowPermutation = new ArrayList<Integer>();
@@ -32,8 +35,8 @@ public class BruteForceSolver extends Solver {
       rowPermutation.add(i + 1);
       colPermutation.add(i + 1);
       for (int j = 0; j < size; ++j) {
-        attempt.put(i * size + j, (i + j) % size + 1);
-        template.put(i * size + j, (i + j) % size + 1);
+        attempt.get(i * size + j).add((i + j) % size + 1);
+        template.get(i * size + j).add((i + j) % size + 1);
       }
     }
     statesChecked = 1;
@@ -68,19 +71,19 @@ public class BruteForceSolver extends Solver {
     getGUI().showProgress(solution);
   }
 
-  public long getStatesChecked() {
-    return statesChecked;
-  }
+  // public long getStatesChecked() {
+  // return statesChecked;
+  // }
 
-  public HashMap<Integer, Integer> getSolution() {
-    return solution;
-  }
+  // public HashMap<Integer, HashSet<Integer>> getSolution() {
+  // return solution;
+  // }
 
-  public void printSolution() {
-    for (int i = 0; i < size; ++i) {
-      System.out.println(solution.get(i));
-    }
-  }
+  // public void printSolution() {
+  // for (int i = 0; i < size; ++i) {
+  // System.out.println(solution.get(i));
+  // }
+  // }
 
   /**
    * @param p

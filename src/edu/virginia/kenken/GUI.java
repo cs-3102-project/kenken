@@ -4,7 +4,12 @@ import static org.lwjgl.opengl.GL11.*;
 
 import java.io.OutputStream;
 import java.io.PrintStream;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Map;
+import java.util.TreeMap;
 
 import org.lwjgl.LWJGLException;
 import org.lwjgl.input.Keyboard;
@@ -691,10 +696,13 @@ public class GUI {
     }
   }
 
-  public void showProgress(HashMap<Integer, Integer> state) {
+  public void showProgress(HashMap<Integer, HashSet<Integer>> state) {
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
     Display.sync(60);
-    guessGrid = state;
+    for (int i = 0; i < size * size; ++i) {
+      guessGrid.put(i, (state.get(i).size() == 1) ? state.get(i).iterator()
+        .next() : -1);
+    }
     renderFrame();
     Display.update();
   }
