@@ -275,7 +275,7 @@ public class DepthFirstSolver extends Solver {
     int gain;
     for (int i = 0; i < size * size; ++i) {
       if (state.get(i).size() > 1) {
-        gain = gainScores.get(i) + 100 * (size - state.get(i).size()) / size;
+        gain = gainScores.get(i) + 700 * (size - state.get(i).size()) / size;
         if (gain > maxGain) {
           maxGain = gain;
           cellID = i;
