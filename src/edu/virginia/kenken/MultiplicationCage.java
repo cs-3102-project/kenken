@@ -23,11 +23,14 @@ public class MultiplicationCage extends Cage {
   public void preprocess(int size, HashMap<Integer, HashSet<Integer>> state) {
     Iterator<Integer> it;
     int value;
+    int minPossible =
+      (int) Math.ceil(getTotal() / Math.pow(size, getTotal() - 1));
+
     for (Integer cellID : getCells()) {
       it = state.get(cellID).iterator();
       while (it.hasNext()) {
         value = it.next();
-        if (getTotal() % value > 0 || getTotal() <= value) {
+        if (getTotal() % value > 0 || value > getTotal() || value < minPossible) {
           it.remove();
         }
       }

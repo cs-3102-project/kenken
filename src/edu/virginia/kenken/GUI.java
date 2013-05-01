@@ -2,8 +2,6 @@ package edu.virginia.kenken;
 
 import static org.lwjgl.opengl.GL11.*;
 
-import java.io.OutputStream;
-import java.io.PrintStream;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
@@ -199,12 +197,12 @@ public class GUI {
 
     try {
       // Temporarily disable System.out
-      System.setOut(new PrintStream(new OutputStream() {
-        @Override
-        public void write(int b) {
-          // Do nothing
-        }
-      }));
+      // System.setOut(new PrintStream(new OutputStream() {
+      // @Override
+      // public void write(int b) {
+      // // Do nothing
+      // }
+      // }));
 
       clueFont = new UnicodeFont(FONT_PATH, CLUE_FONT_SIZE, false, false);
       clueFont.addAsciiGlyphs();
@@ -231,7 +229,7 @@ public class GUI {
       helpFont.loadGlyphs();
 
       // Re-enable System.out
-      System.setOut(System.out);
+      // System.setOut(System.out);
 
     } catch (SlickException e) {
       System.out.println("Failed to create font. Exiting.");
@@ -551,7 +549,8 @@ public class GUI {
           bf.stopTimer();
           bf.printElapsedTime();
           Display.setTitle("KenKen -- Brute Force Solver took "
-            + bf.getElapsedTime() * 0.000000001 + " s");
+            + String.format("%.3f", bf.getElapsedTime() * 0.000000001)
+            + " seconds");
           break;
         case Keyboard.KEY_F11:
           showHelp = false;
@@ -560,8 +559,9 @@ public class GUI {
           dfs.solve();
           dfs.stopTimer();
           dfs.printElapsedTime();
-          Display.setTitle("KenKen -- DFS Solver took " + dfs.getElapsedTime()
-            * 0.000000001 + " s");
+          Display.setTitle("KenKen -- DFS Solver took "
+            + String.format("%.3f", dfs.getElapsedTime() * 0.000000001)
+            + " seconds");
           break;
         default:
           inGuessMode = !inGuessMode;

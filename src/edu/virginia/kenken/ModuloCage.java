@@ -4,6 +4,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.Iterator;
 
 public class ModuloCage extends Cage {
   public ModuloCage(Cage src) {
@@ -15,6 +16,22 @@ public class ModuloCage extends Cage {
   @Override
   public String getClueText() {
     return getTotal() + "%";
+  }
+
+  @Override
+  public void preprocess(int size, HashMap<Integer, HashSet<Integer>> state) {
+    Iterator<Integer> it;
+    int value;
+    for (Integer cellID : getCells()) {
+      it = state.get(cellID).iterator();
+      while (it.hasNext()) {
+        value = it.next();
+        if (value > size - getTotal() && value <= getTotal()) {
+          it.remove();
+        }
+      }
+    }
+    return;
   }
 
   @Override
@@ -30,8 +47,10 @@ public class ModuloCage extends Cage {
         .iterator().next();
     if (a < b) {
       return (b % a == getTotal());
-    } else {
+    } else if (b < a) {
       return (a % b == getTotal());
+    } else {
+      return false;
     }
   }
 

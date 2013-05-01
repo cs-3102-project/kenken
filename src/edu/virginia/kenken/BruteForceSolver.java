@@ -31,12 +31,15 @@ public class BruteForceSolver extends Solver {
     // Start with a legal, non-random board
     ArrayList<Integer> rowPermutation = new ArrayList<Integer>();
     ArrayList<Integer> colPermutation = new ArrayList<Integer>();
+    HashSet<Integer> tmp;
     for (int i = 0; i < size; ++i) {
       rowPermutation.add(i + 1);
       colPermutation.add(i + 1);
       for (int j = 0; j < size; ++j) {
-        attempt.get(i * size + j).add((i + j) % size + 1);
-        template.get(i * size + j).add((i + j) % size + 1);
+        tmp = new HashSet<Integer>();
+        tmp.add((i + j) % size + 1);
+        attempt.put(i * size + j, tmp);
+        template.put(i * size + j, tmp);
       }
     }
     statesChecked = 1;
@@ -44,7 +47,7 @@ public class BruteForceSolver extends Solver {
       statesChecked += 1;
 
       if (statesChecked % 65536 == 0) {
-        getGUI().showProgress(attempt);
+        // getGUI().showProgress(attempt);
       }
 
       // Get next permutations of rows and columns

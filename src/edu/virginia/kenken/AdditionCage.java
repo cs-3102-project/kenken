@@ -22,10 +22,13 @@ public class AdditionCage extends Cage {
   @Override
   public void preprocess(int size, HashMap<Integer, HashSet<Integer>> state) {
     Iterator<Integer> it;
+    int minPossible = getTotal() - size * (getNumCells() - 1);
+    int value;
     for (Integer cellID : getCells()) {
       it = state.get(cellID).iterator();
       while (it.hasNext()) {
-        if (it.next() >= getTotal()) {
+        value = it.next();
+        if (value >= getTotal() || value < minPossible) {
           it.remove();
         }
       }
