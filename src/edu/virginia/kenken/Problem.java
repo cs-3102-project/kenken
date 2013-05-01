@@ -1,6 +1,10 @@
 package edu.virginia.kenken;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Random;
 
 public class Problem {
 
@@ -96,12 +100,12 @@ public class Problem {
     boolean boardFull;
     boolean growable;
 
-    // TODO Remove all references to sizeDistribution (it's just for testing)
-    ArrayList<Integer> sizeDistribution = new ArrayList<Integer>();
-    sizeDistribution.add(0);
-    sizeDistribution.add(0);
-    sizeDistribution.add(0);
-    sizeDistribution.add(0);
+    // TODONE Remove all references to sizeDistribution (it's just for testing)
+    // ArrayList<Integer> sizeDistribution = new ArrayList<Integer>();
+    // sizeDistribution.add(0);
+    // sizeDistribution.add(0);
+    // sizeDistribution.add(0);
+    // sizeDistribution.add(0);
 
     cages = new ArrayList<Cage>();
     Cage cage;
@@ -218,19 +222,25 @@ public class Problem {
           operationCage = new UnitCage(cage);
           break;
         case 2:
-          // TODO Make modulo/division fairer
           opCutoff = rand.nextFloat();
-          if (opCutoff < 0.3) {
-            operationCage = new SubtractionCage(cage);
-          } else if (opCutoff < 0.6) {
+          if (opCutoff < 0.1) {
             operationCage = new AdditionCage(cage);
-          } else if (opCutoff < 1) {
+          } else if (opCutoff < 0.2) {
             operationCage = new MultiplicationCage(cage);
+          } else if (opCutoff < 0.5) {
+            operationCage = new SubtractionCage(cage);
           } else {
-            if (rand.nextBoolean()) {
-              operationCage = new ModuloCage(cage);
-            } else {
+            int smaller = cage.getCellElements().get(0);
+            int larger = cage.getCellElements().get(1);
+            if (larger < smaller) {
+              int temp = smaller;
+              smaller = larger;
+              larger = temp;
+            }
+            if (larger % smaller == 0 && opCutoff < 0.95) {
               operationCage = new DivisionCage(cage);
+            } else {
+              operationCage = new ModuloCage(cage);
             }
           }
           break;
@@ -247,8 +257,8 @@ public class Problem {
         cellCages.set(i, operationCage);
       }
 
-      sizeDistribution
-        .set(cageSize - 1, sizeDistribution.get(cageSize - 1) + 1);
+      // sizeDistribution
+      // .set(cageSize - 1, sizeDistribution.get(cageSize - 1) + 1);
       curID += 1;
     }
 
@@ -274,10 +284,10 @@ public class Problem {
     return cages;
   }
 
-  public boolean checkGrid(HashMap<Integer, Integer> attempt) {
+  public boolean checkGrid(HashMap<Integer, HashSet<Integer>> attempt) {
     // TODO Ensure rows and columns are also valid
     for (Cage c : cages) {
-      if (!c.isSatisfied(size, attempt)) {
+      if (!c.isSatisfiedHashMapVersion(attempt, size)) {
         return false;
       }
     }
@@ -285,7 +295,8 @@ public class Problem {
     boolean generatedSolutionFound = true;
     for (int i = 0; i < size; ++i) {
       for (int j = 0; j < size; ++j) {
-        if (attempt.get(i * size + j) != solution.get(i * size + j)) {
+        if (attempt.get(i * size + j).iterator().next() != solution.get(i
+          * size + j)) {
           generatedSolutionFound = false;
           break;
         }

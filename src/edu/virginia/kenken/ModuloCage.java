@@ -20,15 +20,19 @@ public class ModuloCage extends Cage {
   @Override
   public boolean isSatisfiedHashMapVersion(
     HashMap<Integer, HashSet<Integer>> entryGrid, int size) {
-    ArrayList<Integer> elements = new ArrayList<Integer>();
-    elements.add(
+    int a =
       entryGrid
         .get(getCellPositions().get(0) * size + getCellPositions().get(1))
-        .iterator().next(),
+        .iterator().next();
+    int b =
       entryGrid
         .get(getCellPositions().get(2) * size + getCellPositions().get(3))
-        .iterator().next());
-    return (Collections.max(elements) % Collections.min(elements) == getTotal());
+        .iterator().next();
+    if (a < b) {
+      return (b % a == getTotal());
+    } else {
+      return (a % b == getTotal());
+    }
   }
 
   @Override

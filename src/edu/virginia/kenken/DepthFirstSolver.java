@@ -66,14 +66,15 @@ public class DepthFirstSolver extends Solver {
       }
       getGUI().showProgress(solutionCopy);
 
-      HashMap<Integer, Integer> matrix = new HashMap<Integer, Integer>();
-      for (int i = 0; i < size; ++i) {
-        for (int j = 0; j < size; ++j) {
-          matrix.put(i * size + j, (solution.get(i * size + j).size() == 1)
-            ? solution.get(i * size + j).iterator().next() : -1);
-        }
-      }
-      getProblem().checkGrid(matrix);
+      // HashMap<Integer, Integer> matrix = new HashMap<Integer, Integer>();
+      // for (int i = 0; i < size; ++i) {
+      // for (int j = 0; j < size; ++j) {
+      // matrix.put(i * size + j, (solution.get(i * size + j).size() == 1)
+      // ? solution.get(i * size + j).iterator().next() : -1);
+      // }
+      // }
+      // getProblem().checkGrid(matrix);
+      getProblem().checkGrid(solution);
       printState(solution);
       System.out.println("States checked: " + statesChecked);
     }
