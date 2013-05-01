@@ -106,6 +106,9 @@ public class GUI {
   // Whether or not to show help on the board
   private boolean showHelp;
 
+  // Whether main loop should be running
+  private boolean running;
+
   public GUI(int startupSize) {
     setNewProblem(startupSize);
     init();
@@ -122,6 +125,8 @@ public class GUI {
     problem = new Problem(size);
     cageIDs = problem.getGrid();
     cellCages = problem.getCellCages();
+
+    running = true;
 
     reset();
 
@@ -155,12 +160,21 @@ public class GUI {
    */
   @SuppressWarnings("unchecked")
   private void init() {
+    // Create window
     try {
       Display.setDisplayMode(new DisplayMode(WINDOW_WIDTH, WINDOW_HEIGHT));
       Display.setTitle("KenKen");
       Display.create();
     } catch (LWJGLException e) {
       System.err.println("Display wasn't initialized correctly.");
+      System.exit(1);
+    }
+
+    // Create keyboard
+    try {
+      Keyboard.create();
+    } catch (LWJGLException e) {
+      System.out.println("Keyboard could not be created.");
       System.exit(1);
     }
 
@@ -230,7 +244,7 @@ public class GUI {
    * Constantly refresh the window.
    */
   public void gameLoop() {
-    while (!Display.isCloseRequested()) {
+    while (!Display.isCloseRequested() && running) {
       glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
       Display.sync(60);
       pollInput();
@@ -453,6 +467,9 @@ public class GUI {
         continue;
       }
       switch (Keyboard.getEventKey()) {
+        case Keyboard.KEY_ESCAPE:
+          running = false;
+          break;
         case Keyboard.KEY_1:
         case Keyboard.KEY_NUMPAD1:
           markCell(1);
