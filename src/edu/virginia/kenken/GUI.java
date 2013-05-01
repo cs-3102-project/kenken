@@ -113,51 +113,6 @@ public class GUI {
     setNewProblem(startupSize);
   }
 
-  /*
-   * Load a new problem instance into the main window.
-   */
-  private void setNewProblem(int size) {
-    Display.setTitle("KenKen");
-    this.size = size;
-    cellWidth = BOARD_WIDTH / size;
-
-    problem = new Problem(size);
-    cageIDs = problem.getGrid();
-    cellCages = problem.getCellCages();
-
-    // Calculate guess offsets
-    guess_offset_x = (int) (cellWidth * 0.5 - 8);
-    guess_offset_y = guess_offset_x - 7;
-
-    // Clear board
-    reset();
-
-    // Generate clue texts
-    clueText = new TreeMap<Integer, String>();
-    for (Cage c : problem.getCages()) {
-      clueText.put(c.getCells().get(0), c.getClueText() + "");
-    }
-  }
-
-  private void reset() {
-    guessGrid = new HashMap<Integer, Integer>();
-    noteGrid = new HashMap<Integer, ArrayList<Boolean>>();
-    incorrectGrid = new HashMap<Integer, Boolean>();
-    incorrectCellCages = new ArrayList<ArrayList<Boolean>>();
-    for (int i = 0; i < size; ++i) {
-      incorrectCellCages.add(new ArrayList<Boolean>());
-      for (int j = 0; j < size; ++j) {
-        guessGrid.put(i * size + j, -1);
-        noteGrid.put(i * size + j,
-          new ArrayList<Boolean>(Collections.nCopies(size, false)));
-        incorrectGrid.put(i * size + j, false);
-        incorrectCellCages.get(i).add(false);
-      }
-    }
-
-    inGuessMode = true;
-  }
-
   /**
    * Initialize LWJGL and create the window.
    */
@@ -243,6 +198,51 @@ public class GUI {
     }
   }
 
+  private void reset() {
+    guessGrid = new HashMap<Integer, Integer>();
+    noteGrid = new HashMap<Integer, ArrayList<Boolean>>();
+    incorrectGrid = new HashMap<Integer, Boolean>();
+    incorrectCellCages = new ArrayList<ArrayList<Boolean>>();
+    for (int i = 0; i < size; ++i) {
+      incorrectCellCages.add(new ArrayList<Boolean>());
+      for (int j = 0; j < size; ++j) {
+        guessGrid.put(i * size + j, -1);
+        noteGrid.put(i * size + j,
+          new ArrayList<Boolean>(Collections.nCopies(size, false)));
+        incorrectGrid.put(i * size + j, false);
+        incorrectCellCages.get(i).add(false);
+      }
+    }
+
+    inGuessMode = true;
+  }
+
+  /*
+   * Load a new problem instance into the main window.
+   */
+  private void setNewProblem(int size) {
+    Display.setTitle("KenKen");
+    this.size = size;
+    cellWidth = BOARD_WIDTH / size;
+
+    problem = new Problem(size);
+    cageIDs = problem.getGrid();
+    cellCages = problem.getCellCages();
+
+    // Calculate guess offsets
+    guess_offset_x = (int) (cellWidth * 0.5 - 8);
+    guess_offset_y = guess_offset_x - 7;
+
+    // Clear board
+    reset();
+
+    // Generate clue texts
+    clueText = new TreeMap<Integer, String>();
+    for (Cage c : problem.getCages()) {
+      clueText.put(c.getCells().get(0), c.getClueText() + "");
+    }
+  }
+
   /**
    * Constantly refresh the window.
    */
@@ -305,7 +305,6 @@ public class GUI {
     if (hoverCellX >= 0 && hoverCellX < size && hoverCellY >= 0
       && hoverCellY < size) {
       // Highlight the new cell
-      // TODO replace GL_QUADS with GL_TRIANGLEs
       if (inGuessMode) {
         glColor3f(0.8f, 0.8f, 0.8f);
       } else {
@@ -376,6 +375,7 @@ public class GUI {
       * size);
     glEnd();
 
+    // All fonts must be rendered last!
     // TODO Make overlay dimensions dependent on text size, not window size
     if (showHelp) {
       // Fade board
@@ -409,12 +409,8 @@ public class GUI {
           + "NEW 9x9 PUZZLE\nSOLVE (BRUTE FORCE)\nSOLVE (DFS)\n"
           + "TOGGLE GUESS/NOTE MODE", Color.black);
     } else {
-      // All fonts must be rendered last!
-
       // Draw clue text
       for (Map.Entry<Integer, String> e : clueText.entrySet()) {
-        // TODO Check whether cell contains note and doesn't contain guess; draw
-        // note if so
         clueFont.drawString(
           BOARD_OFFSET_X + CLUE_OFFSET_X + cellWidth * (e.getKey() % size),
           BOARD_OFFSET_Y + CLUE_OFFSET_Y + cellWidth * (e.getKey() / size),
@@ -451,7 +447,6 @@ public class GUI {
    */
   private void pollInput() {
     // Need "+ cellWidth ... - 1" to make -0.5 round to -1 instead of 0
-    // TODO Find a better way to do the above
     hoverCellX = (Mouse.getX() - BOARD_OFFSET_X + cellWidth) / cellWidth - 1;
     hoverCellY =
       (WINDOW_HEIGHT - Mouse.getY() - BOARD_OFFSET_Y + cellWidth) / cellWidth

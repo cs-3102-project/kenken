@@ -1,6 +1,5 @@
 package edu.virginia.kenken;
 
-import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -45,24 +44,18 @@ public class ModuloCage extends Cage {
       entryGrid
         .get(getCellPositions().get(2) * size + getCellPositions().get(3))
         .iterator().next();
-    if (a < b) {
-      return (b % a == getTotal());
-    } else if (b < a) {
-      return (a % b == getTotal());
-    } else {
-      return false;
-    }
+    return (Math.max(a, b) % Math.min(a, b) == getTotal());
   }
 
   @Override
   public boolean isSatisfied(int size, HashMap<Integer, Integer> entryGrid) {
-    ArrayList<Integer> elements = new ArrayList<Integer>();
-    elements.add(
+    int a =
       entryGrid.get(getCellPositions().get(0) * size
-        + getCellPositions().get(1)),
+        + getCellPositions().get(1));
+    int b =
       entryGrid.get(getCellPositions().get(2) * size
-        + getCellPositions().get(3)));
-    return (Collections.max(elements) % Collections.min(elements) == getTotal());
+        + getCellPositions().get(3));
+    return (Math.max(a, b) % Math.min(a, b) == getTotal());
   }
 
 }
