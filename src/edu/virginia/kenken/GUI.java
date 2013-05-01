@@ -4,11 +4,7 @@ import static org.lwjgl.opengl.GL11.*;
 
 import java.io.OutputStream;
 import java.io.PrintStream;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.TreeMap;
+import java.util.*;
 
 import org.lwjgl.LWJGLException;
 import org.lwjgl.input.Keyboard;
@@ -551,19 +547,22 @@ public class GUI {
   }
 
   private void markCell(int n) {
+    boolean isRemoval;
     if (hoverCellX >= 0 && hoverCellX < size && hoverCellY >= 0
       && hoverCellY < size) {
       if (inGuessMode) {
         // Mark guess
         if (guessGrid.get(hoverCellY * size + hoverCellX) == n) {
           guessGrid.put(hoverCellY * size + hoverCellX, -1);
+          isRemoval = true;
         } else {
           guessGrid.put(hoverCellY * size + hoverCellX, n);
+          isRemoval = false;
         }
         // Verify row
         ArrayList<Integer> currRow = new ArrayList<Integer>();
         for (int i = 0; i < size; ++i) {
-          currRow.add(hoverCellY * size + i);
+          currRow.add(guessGrid.get(hoverCellY * size + i));
         }
         for (int i = 0; i < size; ++i) {
           if (currRow.get(i) < 0) {
@@ -602,30 +601,60 @@ public class GUI {
               && Collections.frequency(currRow, currCol.get(i)) < 2
               && incorrectGrid.get(i * size + hoverCellX) == true) {
               incorrectGrid.put(i * size + hoverCellX, false);
+            }
+          }
+        }
 
-              // Yes, recheck ALL the rows again
-              for (int j = 0; j < size; ++j) {
-                ArrayList<Integer> row = new ArrayList<Integer>();
-                for (int m = 0; m < size; ++m) {
-                  row.add(j * size + m);
-                }
-                for (int k = 0; k < size; ++k) {
-                  if (row.get(k) < 0) {
-                    incorrectGrid.put(j * size + k, false);
-                  } else {
-                    if (row.lastIndexOf(Integer.valueOf(row.get(k))) != k) {
-                      incorrectGrid.put(j * size + k, true);
-                      incorrectGrid
-                        .put(
-                          j * size
-                            + row.lastIndexOf(Integer.valueOf(row.get(k))),
-                          true);
-                    }
-                  }
+        // Yes, recheck ALL the rows again
+        for (int j = 0; j < size; ++j) {
+          ArrayList<Integer> row = new ArrayList<Integer>();
+          for (int m = 0; m < size; ++m) {
+            row.add(guessGrid.get(j * size + m));
+          }
+          for (int k = 0; k < size; ++k) {
+            if (row.get(k) < 0) {
+              incorrectGrid.put(j * size + k, false);
+            } else {
+              if (row.lastIndexOf(Integer.valueOf(row.get(k))) != k) {
+                incorrectGrid.put(j * size + k, true);
+                incorrectGrid
+                  .put(j * size + row.lastIndexOf(Integer.valueOf(row.get(k))),
+                    true);
+              }
+            }
+          }
+        }
+
+        // verify columns containing the number the user input
+        for (int i = 0; i < size; ++i) {
+          if (currRow.get(i) == n && i != hoverCellX) {
+
+            ArrayList<Integer> col = new ArrayList<Integer>();
+            ArrayList<Boolean> corCol = new ArrayList<Boolean>();
+            for (int m = 0; m < size; ++m) {
+              col.add(guessGrid.get(m * size + i));
+              corCol.add(incorrectGrid.get(Integer.valueOf(m * size + i)));
+            }
+            for (int k = 0; k < size; ++k) {
+
+              if (col.get(k) < 0) {
+                incorrectGrid.put(k * size + i, false);
+              } else {
+                if (col.lastIndexOf(Integer.valueOf(col.get(k))) != k) {
+                  incorrectGrid.put(k * size + i, true);
+
+                  incorrectGrid.put(
+                    col.lastIndexOf(Integer.valueOf(col.get(k))) * size + i,
+                    true);
                 }
               }
             }
           }
+        }
+
+        // verify cell of user input once more
+        if (isRemoval) {
+          incorrectGrid.put(hoverCellY * size + hoverCellX, false);
         }
 
         // Deal with cages
