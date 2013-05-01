@@ -548,6 +548,7 @@ public class GUI {
 
   private void markCell(int n) {
     boolean isRemoval;
+    int lastNumber = 0;
     if (hoverCellX >= 0 && hoverCellX < size && hoverCellY >= 0
       && hoverCellY < size) {
       if (inGuessMode) {
@@ -556,6 +557,7 @@ public class GUI {
           guessGrid.put(hoverCellY * size + hoverCellX, -1);
           isRemoval = true;
         } else {
+          lastNumber = guessGrid.get(hoverCellY * size + hoverCellX);
           guessGrid.put(hoverCellY * size + hoverCellX, n);
           isRemoval = false;
         }
@@ -606,6 +608,8 @@ public class GUI {
         }
 
         // Yes, recheck ALL the rows again
+        ArrayList<Boolean> modifiedCols =
+          new ArrayList<Boolean>(Collections.nCopies(size, false));
         for (int j = 0; j < size; ++j) {
           ArrayList<Integer> row = new ArrayList<Integer>();
           for (int m = 0; m < size; ++m) {
@@ -614,6 +618,7 @@ public class GUI {
           for (int k = 0; k < size; ++k) {
             if (row.get(k) < 0) {
               incorrectGrid.put(j * size + k, false);
+              modifiedCols.set(k, true);
             } else {
               if (row.lastIndexOf(Integer.valueOf(row.get(k))) != k) {
                 incorrectGrid.put(j * size + k, true);
@@ -625,15 +630,12 @@ public class GUI {
           }
         }
 
-        // verify columns containing the number the user input
+        // verify all changed columns
         for (int i = 0; i < size; ++i) {
-          if (currRow.get(i) == n && i != hoverCellX) {
-
+          if (modifiedCols.get(i)) {
             ArrayList<Integer> col = new ArrayList<Integer>();
-            ArrayList<Boolean> corCol = new ArrayList<Boolean>();
-            for (int m = 0; m < size; ++m) {
-              col.add(guessGrid.get(m * size + i));
-              corCol.add(incorrectGrid.get(Integer.valueOf(m * size + i)));
+            for (int j = 0; j < size; ++j) {
+              col.add(guessGrid.get(j * size + i));
             }
             for (int k = 0; k < size; ++k) {
 
