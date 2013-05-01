@@ -39,9 +39,9 @@ public class GUI {
   private static final int CLUE_OFFSET_Y = 1;
   private static final int CLUE_FONT_SIZE = 12;
 
-  // Guess constants
-  private static final int GUESS_OFFSET_X = 17;
-  private static final int GUESS_OFFSET_Y = 10;
+  // Guess variables
+  private int guess_offset_x;
+  private int guess_offset_y;
   private static final int GUESS_FONT_SIZE = 25;
 
   // Note constants
@@ -108,8 +108,9 @@ public class GUI {
   private boolean running;
 
   public GUI(int startupSize) {
-    setNewProblem(startupSize);
+    running = true;
     init();
+    setNewProblem(startupSize);
   }
 
   /*
@@ -124,10 +125,14 @@ public class GUI {
     cageIDs = problem.getGrid();
     cellCages = problem.getCellCages();
 
-    running = true;
+    // Calculate guess offsets
+    guess_offset_x = (int) (cellWidth * 0.5 - 8);
+    guess_offset_y = guess_offset_x - 7;
 
+    // Clear board
     reset();
 
+    // Generate clue texts
     clueText = new TreeMap<Integer, String>();
     for (Cage c : problem.getCages()) {
       clueText.put(c.getCells().get(0), c.getClueText() + "");
@@ -277,6 +282,25 @@ public class GUI {
       glEnd();
     }
 
+    // Highlight errors in red
+    for (int i = 0; i < size; ++i) {
+      for (int j = 0; j < size; ++j) {
+        if (incorrectGrid.get(i * size + j) || incorrectCellCages.get(i).get(j)) {
+          glColor3f(1.0f, 0.7f, 0.7f);
+          glBegin(GL_QUADS);
+          glVertex2f(BOARD_OFFSET_X + j * cellWidth, BOARD_OFFSET_Y + i
+            * cellWidth);
+          glVertex2f(BOARD_OFFSET_X + (j + 1) * cellWidth, BOARD_OFFSET_Y + i
+            * cellWidth);
+          glVertex2f(BOARD_OFFSET_X + (j + 1) * cellWidth, BOARD_OFFSET_Y
+            + (i + 1) * cellWidth);
+          glVertex2f(BOARD_OFFSET_X + j * cellWidth, BOARD_OFFSET_Y + (i + 1)
+            * cellWidth);
+          glEnd();
+        }
+      }
+    }
+
     // Draw highlighted cell's background
     if (hoverCellX >= 0 && hoverCellX < size && hoverCellY >= 0
       && hoverCellY < size) {
@@ -297,25 +321,6 @@ public class GUI {
       glVertex2f(BOARD_OFFSET_X + hoverCellX * cellWidth, BOARD_OFFSET_Y
         + (hoverCellY + 1) * cellWidth);
       glEnd();
-    }
-
-    for (int i = 0; i < size; ++i) {
-      for (int j = 0; j < size; ++j) {
-        if (incorrectGrid.get(i * size + j) == true) {
-          // Highlight errors in red
-          glColor3f(0.8f, 0.4f, 0.4f);
-          glBegin(GL_QUADS);
-          glVertex2f(BOARD_OFFSET_X + j * cellWidth, BOARD_OFFSET_Y + i
-            * cellWidth);
-          glVertex2f(BOARD_OFFSET_X + (j + 1) * cellWidth, BOARD_OFFSET_Y + i
-            * cellWidth);
-          glVertex2f(BOARD_OFFSET_X + (j + 1) * cellWidth, BOARD_OFFSET_Y
-            + (i + 1) * cellWidth);
-          glVertex2f(BOARD_OFFSET_X + j * cellWidth, BOARD_OFFSET_Y + (i + 1)
-            * cellWidth);
-          glEnd();
-        }
-      }
     }
 
     // Draw cell walls (note that when traversing the cageIDs in either the
@@ -415,22 +420,14 @@ public class GUI {
           BOARD_OFFSET_Y + CLUE_OFFSET_Y + cellWidth * (e.getKey() / size),
           e.getValue(), Color.darkGray);
       }
-      Color normal = Color.black;
-      Color incorrect = Color.red;
-      Color guessColor;
       // Draw guess text and note text
       for (int i = 0; i < size; ++i) {
         for (int j = 0; j < size; ++j) {
-          if (!incorrectCellCages.get(i).get(j)) {
-            guessColor = normal;
-          } else {
-            guessColor = incorrect;
-          }
           if (guessGrid.get(i * size + j) > 0) {
             guessFont.drawString(BOARD_OFFSET_X + j * cellWidth
-              + GUESS_OFFSET_X,
-              BOARD_OFFSET_Y + i * cellWidth + GUESS_OFFSET_Y,
-              Integer.toString(guessGrid.get(i * size + j)), guessColor);
+              + guess_offset_x,
+              BOARD_OFFSET_Y + i * cellWidth + guess_offset_y,
+              Integer.toString(guessGrid.get(i * size + j)), Color.black);
           } else {
             for (int k = 0; k < size; ++k) {
               if (noteGrid.get(i * size + j).get(k)) {
@@ -572,7 +569,6 @@ public class GUI {
 
   private void markCell(int n) {
     boolean isRemoval;
-    int lastNumber = 0;
     if (hoverCellX >= 0 && hoverCellX < size && hoverCellY >= 0
       && hoverCellY < size) {
       if (inGuessMode) {
@@ -581,135 +577,134 @@ public class GUI {
           guessGrid.put(hoverCellY * size + hoverCellX, -1);
           isRemoval = true;
         } else {
-          lastNumber = guessGrid.get(hoverCellY * size + hoverCellX);
           guessGrid.put(hoverCellY * size + hoverCellX, n);
           isRemoval = false;
         }
-        // Verify row
-        ArrayList<Integer> currRow = new ArrayList<Integer>();
-        for (int i = 0; i < size; ++i) {
-          currRow.add(guessGrid.get(hoverCellY * size + i));
-        }
-        for (int i = 0; i < size; ++i) {
-          if (currRow.get(i) < 0) {
-            incorrectGrid.put(hoverCellY * size + i, false);
-          } else {
-            if (currRow.lastIndexOf(Integer.valueOf(currRow.get(i))) != i) {
-              incorrectGrid.put(hoverCellY * size + i, true);
-              incorrectGrid.put(
-                hoverCellY * size
-                  + currRow.lastIndexOf(Integer.valueOf(currRow.get(i))), true);
-            }
-            if (Collections.frequency(currRow, currRow.get(i)) < 2
-              && incorrectGrid.get(hoverCellY * size + i) == true) {
-              incorrectGrid.put(hoverCellY * size + i, false);
-            }
-          }
-        }
-
-        // Verify column
-        ArrayList<Integer> currCol = new ArrayList<Integer>();
-        for (int i = 0; i < size; ++i) {
-          currCol.add(guessGrid.get(i * size + hoverCellX));
-        }
-        for (int i = 0; i < size; ++i) {
-          if (currCol.get(i) < 0) {
-            incorrectGrid.put(i * size + hoverCellX, false);
-          } else {
-            if (currCol.lastIndexOf(Integer.valueOf(currCol.get(i))) != i) {
-              incorrectGrid.put(i * size + hoverCellX, true);
-              incorrectGrid.put(
-                currCol.lastIndexOf(Integer.valueOf(currCol.get(i))) * size
-                  + hoverCellX, true);
-
-            }
-            if (Collections.frequency(currCol, currCol.get(i)) < 2
-              && Collections.frequency(currRow, currCol.get(i)) < 2
-              && incorrectGrid.get(i * size + hoverCellX) == true) {
-              incorrectGrid.put(i * size + hoverCellX, false);
-            }
-          }
-        }
-
-        // Yes, recheck ALL the rows again
-        ArrayList<Boolean> modifiedCols =
-          new ArrayList<Boolean>(Collections.nCopies(size, false));
-        for (int j = 0; j < size; ++j) {
-          ArrayList<Integer> row = new ArrayList<Integer>();
-          for (int m = 0; m < size; ++m) {
-            row.add(guessGrid.get(j * size + m));
-          }
-          for (int k = 0; k < size; ++k) {
-            if (row.get(k) < 0) {
-              incorrectGrid.put(j * size + k, false);
-              modifiedCols.set(k, true);
-            } else {
-              if (row.lastIndexOf(Integer.valueOf(row.get(k))) != k) {
-                incorrectGrid.put(j * size + k, true);
-                incorrectGrid
-                  .put(j * size + row.lastIndexOf(Integer.valueOf(row.get(k))),
-                    true);
-              }
-            }
-          }
-        }
-
-        // verify all changed columns
-        for (int i = 0; i < size; ++i) {
-          if (modifiedCols.get(i)) {
-            ArrayList<Integer> col = new ArrayList<Integer>();
-            for (int j = 0; j < size; ++j) {
-              col.add(guessGrid.get(j * size + i));
-            }
-            for (int k = 0; k < size; ++k) {
-
-              if (col.get(k) < 0) {
-                incorrectGrid.put(k * size + i, false);
-              } else {
-                if (col.lastIndexOf(Integer.valueOf(col.get(k))) != k) {
-                  incorrectGrid.put(k * size + i, true);
-
-                  incorrectGrid.put(
-                    col.lastIndexOf(Integer.valueOf(col.get(k))) * size + i,
-                    true);
-                }
-              }
-            }
-          }
-        }
-
-        // verify cell of user input once more
-        if (isRemoval) {
-          incorrectGrid.put(hoverCellY * size + hoverCellX, false);
-        }
-
-        // Deal with cages
-        Cage cageToCheck = cellCages.get(hoverCellY * size + hoverCellX);
-        if (guessGrid.get(hoverCellY * size + hoverCellX) > -1) {
-          if (cageToCheck.isFilled(size, guessGrid)
-            && !cageToCheck.isSatisfied(size, guessGrid)) {
-            for (Integer i : cageToCheck.getCells()) {
-              incorrectCellCages.get(i / size).set(i % size, true);
-
-            }
-          } else if (cageToCheck.isFilled(size, guessGrid)
-            && cageToCheck.isSatisfied(size, guessGrid)) {
-            for (Integer i : cageToCheck.getCells()) {
-              incorrectCellCages.get(i / size).set(i % size, false);
-            }
-          }
-        } else {
-          for (Integer i : cageToCheck.getCells()) {
-            incorrectCellCages.get(i / size).set(i % size, false);
-          }
-        }
-
       } else {
         // Mark note
         if (noteGrid.get(hoverCellY * size + hoverCellX).get(n - 1)) {
           noteGrid.get(hoverCellY * size + hoverCellX).set(n - 1, false);
+          isRemoval = false;
         } else {
+          guessGrid.put(hoverCellY * size + hoverCellX, -1);
           noteGrid.get(hoverCellY * size + hoverCellX).set(n - 1, true);
+          isRemoval = true;
+        }
+      }
+      // Verify row
+      ArrayList<Integer> currRow = new ArrayList<Integer>();
+      for (int i = 0; i < size; ++i) {
+        currRow.add(guessGrid.get(hoverCellY * size + i));
+      }
+      for (int i = 0; i < size; ++i) {
+        if (currRow.get(i) < 0) {
+          incorrectGrid.put(hoverCellY * size + i, false);
+        } else {
+          if (currRow.lastIndexOf(Integer.valueOf(currRow.get(i))) != i) {
+            incorrectGrid.put(hoverCellY * size + i, true);
+            incorrectGrid.put(
+              hoverCellY * size
+                + currRow.lastIndexOf(Integer.valueOf(currRow.get(i))), true);
+          }
+          if (Collections.frequency(currRow, currRow.get(i)) < 2
+            && incorrectGrid.get(hoverCellY * size + i) == true) {
+            incorrectGrid.put(hoverCellY * size + i, false);
+          }
+        }
+      }
+
+      // Verify column
+      ArrayList<Integer> currCol = new ArrayList<Integer>();
+      for (int i = 0; i < size; ++i) {
+        currCol.add(guessGrid.get(i * size + hoverCellX));
+      }
+      for (int i = 0; i < size; ++i) {
+        if (currCol.get(i) < 0) {
+          incorrectGrid.put(i * size + hoverCellX, false);
+        } else {
+          if (currCol.lastIndexOf(Integer.valueOf(currCol.get(i))) != i) {
+            incorrectGrid.put(i * size + hoverCellX, true);
+            incorrectGrid.put(
+              currCol.lastIndexOf(Integer.valueOf(currCol.get(i))) * size
+                + hoverCellX, true);
+
+          }
+          if (Collections.frequency(currCol, currCol.get(i)) < 2
+            && Collections.frequency(currRow, currCol.get(i)) < 2
+            && incorrectGrid.get(i * size + hoverCellX) == true) {
+            incorrectGrid.put(i * size + hoverCellX, false);
+          }
+        }
+      }
+
+      // Yes, recheck ALL the rows again
+      ArrayList<Boolean> modifiedCols =
+        new ArrayList<Boolean>(Collections.nCopies(size, false));
+      for (int j = 0; j < size; ++j) {
+        ArrayList<Integer> row = new ArrayList<Integer>();
+        for (int m = 0; m < size; ++m) {
+          row.add(guessGrid.get(j * size + m));
+        }
+        for (int k = 0; k < size; ++k) {
+          if (row.get(k) < 0) {
+            incorrectGrid.put(j * size + k, false);
+            modifiedCols.set(k, true);
+          } else {
+            if (row.lastIndexOf(Integer.valueOf(row.get(k))) != k) {
+              incorrectGrid.put(j * size + k, true);
+              incorrectGrid.put(
+                j * size + row.lastIndexOf(Integer.valueOf(row.get(k))), true);
+            }
+          }
+        }
+      }
+
+      // verify all changed columns
+      for (int i = 0; i < size; ++i) {
+        if (modifiedCols.get(i)) {
+          ArrayList<Integer> col = new ArrayList<Integer>();
+          for (int j = 0; j < size; ++j) {
+            col.add(guessGrid.get(j * size + i));
+          }
+          for (int k = 0; k < size; ++k) {
+
+            if (col.get(k) < 0) {
+              incorrectGrid.put(k * size + i, false);
+            } else {
+              if (col.lastIndexOf(Integer.valueOf(col.get(k))) != k) {
+                incorrectGrid.put(k * size + i, true);
+
+                incorrectGrid.put(col.lastIndexOf(Integer.valueOf(col.get(k)))
+                  * size + i, true);
+              }
+            }
+          }
+        }
+      }
+
+      // verify cell of user input once more
+      if (isRemoval) {
+        incorrectGrid.put(hoverCellY * size + hoverCellX, false);
+      }
+
+      // Deal with cages
+      Cage cageToCheck = cellCages.get(hoverCellY * size + hoverCellX);
+      if (guessGrid.get(hoverCellY * size + hoverCellX) > -1) {
+        if (cageToCheck.isFilled(size, guessGrid)
+          && !cageToCheck.isSatisfied(size, guessGrid)) {
+          for (Integer i : cageToCheck.getCells()) {
+            incorrectCellCages.get(i / size).set(i % size, true);
+
+          }
+        } else if (cageToCheck.isFilled(size, guessGrid)
+          && cageToCheck.isSatisfied(size, guessGrid)) {
+          for (Integer i : cageToCheck.getCells()) {
+            incorrectCellCages.get(i / size).set(i % size, false);
+          }
+        }
+      } else {
+        for (Integer i : cageToCheck.getCells()) {
+          incorrectCellCages.get(i / size).set(i % size, false);
         }
       }
     }
