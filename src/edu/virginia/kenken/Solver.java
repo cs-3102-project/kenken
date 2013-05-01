@@ -34,4 +34,8 @@ public abstract class Solver {
       + " seconds");
   }
 
+  public long getElapsedTime() {
+    return elapsedTime;
+  }
+
 }

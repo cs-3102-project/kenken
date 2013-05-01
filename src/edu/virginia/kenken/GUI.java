@@ -4,11 +4,7 @@ import static org.lwjgl.opengl.GL11.*;
 
 import java.io.OutputStream;
 import java.io.PrintStream;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.TreeMap;
+import java.util.*;
 
 import org.lwjgl.LWJGLException;
 import org.lwjgl.input.Keyboard;
@@ -51,7 +47,7 @@ public class GUI {
   private static final int NOTE_FONT_SIZE = 10;
 
   // Help text constants
-  private static final int HELP_OFFSET_X = 7;
+  private static final int HELP_OFFSET_X = -20;
   private static final int HELP_OFFSET_Y = 9;
   private static final int HELP_FONT_SIZE = 20;
 
@@ -114,6 +110,7 @@ public class GUI {
    * Load a new problem instance into the main window.
    */
   private void setNewProblem(int size) {
+    Display.setTitle("KenKen");
     this.size = size;
     cellWidth = BOARD_WIDTH / size;
 
@@ -371,17 +368,17 @@ public class GUI {
       // Modal overlay
       glColor3f(1.0f, 1.0f, 1.0f);
       glBegin(GL_QUADS);
-      glVertex2f(WINDOW_WIDTH * 0.25f, WINDOW_HEIGHT * 0.33f);
-      glVertex2f(WINDOW_WIDTH * 0.75f, WINDOW_HEIGHT * 0.33f);
-      glVertex2f(WINDOW_WIDTH * 0.75f, WINDOW_HEIGHT * 0.67f);
-      glVertex2f(WINDOW_WIDTH * 0.25f, WINDOW_HEIGHT * 0.67f);
+      glVertex2f(WINDOW_WIDTH * 0.20f, WINDOW_HEIGHT * 0.35f);
+      glVertex2f(WINDOW_WIDTH * 0.80f, WINDOW_HEIGHT * 0.35f);
+      glVertex2f(WINDOW_WIDTH * 0.80f, WINDOW_HEIGHT * 0.65f);
+      glVertex2f(WINDOW_WIDTH * 0.20f, WINDOW_HEIGHT * 0.65f);
       glEnd();
 
       helpFont
         .drawString(
           HELP_OFFSET_X + WINDOW_WIDTH * 0.25f,
           HELP_OFFSET_Y + WINDOW_HEIGHT * 0.33f,
-          "F1: HELP\nF2: RESET\nF3: NEW PUZZLE\nF4: BRUTE FORCE SOLVER\nF5: DFS SOLVER",
+          "F1: HELP\nF2: RESET\nF3 - F9: NEW PUZZLE SIZES 3 - 9 \nF10: BRUTE FORCE SOLVER\nF11: DFS SOLVER\nOTHER: TOGGLE GUESS MODE",
           Color.black);
     } else {
       // All fonts must be rendered last!
@@ -492,23 +489,51 @@ public class GUI {
           break;
         case Keyboard.KEY_F3:
           showHelp = false;
-          setNewProblem(size);
+          setNewProblem(3);
           break;
         case Keyboard.KEY_F4:
+          showHelp = false;
+          setNewProblem(4);
+          break;
+        case Keyboard.KEY_F5:
+          showHelp = false;
+          setNewProblem(5);
+          break;
+        case Keyboard.KEY_F6:
+          showHelp = false;
+          setNewProblem(6);
+          break;
+        case Keyboard.KEY_F7:
+          showHelp = false;
+          setNewProblem(7);
+          break;
+        case Keyboard.KEY_F8:
+          showHelp = false;
+          setNewProblem(8);
+          break;
+        case Keyboard.KEY_F9:
+          showHelp = false;
+          setNewProblem(9);
+          break;
+        case Keyboard.KEY_F10:
           showHelp = false;
           BruteForceSolver bf = new BruteForceSolver(this, problem);
           bf.startTimer();
           bf.solve();
           bf.stopTimer();
           bf.printElapsedTime();
+          Display.setTitle("KenKen -- Brute Force Solver took "
+            + bf.getElapsedTime() * 0.000000001 + " s");
           break;
-        case Keyboard.KEY_F5:
+        case Keyboard.KEY_F11:
           showHelp = false;
           DepthFirstSolver dfs = new DepthFirstSolver(this, problem);
           dfs.startTimer();
           dfs.solve();
           dfs.stopTimer();
           dfs.printElapsedTime();
+          Display.setTitle("KenKen -- DFS Solver took " + dfs.getElapsedTime()
+            * 0.000000001 + " s");
           break;
         default:
           inGuessMode = !inGuessMode;

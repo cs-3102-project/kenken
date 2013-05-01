@@ -1,10 +1,6 @@
 package edu.virginia.kenken;
 
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Random;
+import java.util.*;
 
 public class Problem {
 
@@ -56,15 +52,15 @@ public class Problem {
     Collections.shuffle(solutionArray);
 
     // Print matrix (for testing only)
-
-    System.out.println("Generated solution:");
-    for (int i = 0; i < size; ++i) {
-      for (int j = 0; j < size; ++j) {
-        System.out.print(solutionArray.get(i).get(j));
-      }
-      System.out.print("\n");
-    }
-    System.out.println("");
+    //
+    // System.out.println("Generated solution:");
+    // for (int i = 0; i < size; ++i) {
+    // for (int j = 0; j < size; ++j) {
+    // System.out.print(solutionArray.get(i).get(j));
+    // }
+    // System.out.print("\n");
+    // }
+    // System.out.println("");
 
     // Copy temporary solution arrays into hashmap
     solution = new HashMap<Integer, Integer>();
