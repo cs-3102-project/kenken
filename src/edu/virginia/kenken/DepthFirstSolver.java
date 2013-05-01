@@ -10,6 +10,7 @@ public class DepthFirstSolver extends Solver {
   private boolean solutionFound;
   private HashMap<Integer, HashSet<Integer>> solution;
   private int statesChecked;
+  private HashMap<Integer, Integer> gainScores;
 
   public DepthFirstSolver(GUI gui, Problem problem) {
     super(gui, problem);
@@ -43,11 +44,46 @@ public class DepthFirstSolver extends Solver {
       }
     }
 
-    // Seed DFS with the first undetermined cell
-    // TODO Seed DFS with the cell that has highest information gain
+    // Assign expected information gain scores to cells
+    gainScores = new HashMap<Integer, Integer>();
+    int operationScore = -1;
+    for (Cage c : cages) {
+      switch (c.getClass().getSimpleName()) {
+        case "AdditionCage":
+          operationScore = 35;
+          break;
+        case "DivisionCage":
+          operationScore = 50;
+          break;
+        case "ModuloCage":
+          operationScore = 35;
+          break;
+        case "MultiplicationCage":
+          operationScore = 50;
+          break;
+        case "SubtractionCage":
+          operationScore = 35;
+          break;
+        case "UnitCage":
+          operationScore = -1;
+          break;
+        default:
+          System.out.println("Wtf");
+          break;
+      }
 
-    // Call the root instance of DFS on the seed cell
-    DFS(firstSeedable(root), root);
+      if (operationScore < 0) {
+        continue;
+      }
+
+      for (Integer cellID : c.getCells()) {
+        gainScores.put(cellID,
+          (int) (operationScore - 12 * Math.pow(1.5, c.getNumCells() - 1)));
+      }
+    }
+
+    // Call the root instance of DFS on the cell with highest info gain
+    DFS(maxGain(root), root);
 
     if (solution == null) {
       System.out.println("No solution found.");
@@ -148,8 +184,7 @@ public class DepthFirstSolver extends Solver {
       }
 
       // Recursively call DFS
-      // TODO Seed DFS with the cell that has highest information gain
-      DFS(firstSeedable(child), child);
+      DFS(maxGain(child), child);
     }
   }
 
@@ -196,12 +231,6 @@ public class DepthFirstSolver extends Solver {
     }
   }
 
-  private ArrayList<Integer>
-    sortPeersByInformationGain(ArrayList<Integer> peers) {
-    // TODO Make this actually do what it says on the tin
-    return peers;
-  }
-
   /**
    * Check whether all cells in the state have 1 possible value.
    * 
@@ -234,22 +263,25 @@ public class DepthFirstSolver extends Solver {
     return clone;
   }
 
-  // private void printState(HashMap<Integer, HashSet<Integer>> state) {
-  // for (int i = 0; i < size; ++i) {
-  // for (int j = 0; j < size; ++j) {
-  // System.out.print(state.get(i * size + j).iterator().next());
-  // }
-  // System.out.println("");
-  // }
-  // }
-
-  // TODO Remove this function after information gain is implemented
-  private int firstSeedable(HashMap<Integer, HashSet<Integer>> state) {
+  private int maxGain(HashMap<Integer, HashSet<Integer>> state) {
+    // for (int i = 0; i < size * size; ++i) {
+    // if (state.get(i).size() > 1) {
+    // return i;
+    // }
+    // }
+    // return -1;
+    int maxGain = -1;
+    int cellID = -1;
+    int gain;
     for (int i = 0; i < size * size; ++i) {
       if (state.get(i).size() > 1) {
-        return i;
+        gain = gainScores.get(i) + 100 * (size - state.get(i).size()) / size;
+        if (gain > maxGain) {
+          maxGain = gain;
+          cellID = i;
+        }
       }
     }
-    return -1;
+    return cellID;
   }
 }
