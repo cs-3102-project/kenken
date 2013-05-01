@@ -53,7 +53,7 @@ public class GUI {
 
   // Help text constants
   private static final int HELP_OFFSET_X = 19;
-  private static final int HELP_OFFSET_Y = 22;
+  private static final int HELP_OFFSET_Y = 11;
   private static final int HELP_FONT_SIZE = 20;
 
   private static final String FONT_PATH = "res/DroidSans.ttf";
@@ -393,13 +393,15 @@ public class GUI {
       glVertex2f(WINDOW_WIDTH * 0.1f, WINDOW_HEIGHT * 0.85f);
       glEnd();
 
-      helpFont.drawString(HELP_OFFSET_X + WINDOW_WIDTH * 0.1f, HELP_OFFSET_Y
-        + WINDOW_HEIGHT * 0.15f,
-        "F1:\nF2:\nF3:\nF4:\nF5:\nF6:\nF7:\nF8:\nF9:\nF10:\nF11:\nOTHER:",
-        Color.black);
+      helpFont
+        .drawString(
+          HELP_OFFSET_X + WINDOW_WIDTH * 0.1f,
+          HELP_OFFSET_Y + WINDOW_HEIGHT * 0.15f,
+          "ESC:\nF1:\nF2:\nF3:\nF4:\nF5:\nF6:\nF7:\nF8:\nF9:\nF10:\nF11:\nOTHER:",
+          Color.black);
       helpFont.drawString(HELP_OFFSET_X + WINDOW_WIDTH * 0.1f + 85,
         HELP_OFFSET_Y + WINDOW_HEIGHT * 0.15f,
-        "HELP\nRESET\nNEW 3x3 PUZZLE\nNEW 4x4 PUZZLE\nNEW 5x5 PUZZLE\n"
+        "EXIT\nHELP\nRESET\nNEW 3x3 PUZZLE\nNEW 4x4 PUZZLE\nNEW 5x5 PUZZLE\n"
           + "NEW 6x6 PUZZLE\nNEW 7x7 PUZZLE\nNEW 8x8 PUZZLE\n"
           + "NEW 9x9 PUZZLE\nSOLVE (BRUTE FORCE)\nSOLVE (DFS)\n"
           + "TOGGLE GUESS/NOTE MODE", Color.black);
