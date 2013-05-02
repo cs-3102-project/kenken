@@ -118,6 +118,12 @@ public class GUI {
   // Whether main loop should be running
   private boolean running;
 
+  // Used for checking whether player-filled board is solution
+  private HashMap<Integer, HashSet<Integer>> attempt;
+
+  // Used for displaying time player took to solve puzzle
+  private long startTime;
+
   public GUI(int startupSize) {
     running = true;
     modEnabled = false;
@@ -215,6 +221,7 @@ public class GUI {
     noteGrid = new HashMap<Integer, ArrayList<Boolean>>();
     incorrectGrid = new HashMap<Integer, Boolean>();
     incorrectCellCages = new ArrayList<ArrayList<Boolean>>();
+    attempt = new HashMap<Integer, HashSet<Integer>>();
     for (int i = 0; i < size; ++i) {
       incorrectCellCages.add(new ArrayList<Boolean>());
       for (int j = 0; j < size; ++j) {
@@ -227,13 +234,14 @@ public class GUI {
     }
 
     inGuessMode = true;
+    Display.setTitle("KenKen");
+    startTime = System.nanoTime();
   }
 
   /*
    * Load a new problem instance into the main window.
    */
   private void setNewProblem(int size) {
-    Display.setTitle("KenKen");
     this.size = size;
     cellWidth = BOARD_WIDTH / size;
 
@@ -581,11 +589,34 @@ public class GUI {
           isRemoval = true;
         } else {
           guessGrid.put(hoverCellY * size + hoverCellX, n);
+
+          // Return if board contains solution
+          boolean boardComplete = true;
+          int guess;
+          HashSet<Integer> guessSet;
+          for (int i = 0; i < size * size; ++i) {
+            guess = guessGrid.get(i);
+            if (guess < 1) {
+              boardComplete = false;
+              break;
+            }
+            guessSet = new HashSet<Integer>();
+            guessSet.add(guess);
+            attempt.put(i, guessSet);
+          }
+          if (boardComplete && problem.checkGrid(attempt)) {
+            Display.setTitle("KenKen - Player solved in "
+              + String.format("%.3f",
+                (System.nanoTime() - startTime) * 0.000000001) + " seconds!");
+            return;
+          }
+
           isRemoval = false;
         }
       } else {
         // Mark note
         if (noteGrid.get(hoverCellY * size + hoverCellX).get(n - 1)) {
+          guessGrid.put(hoverCellY * size + hoverCellX, -1);
           noteGrid.get(hoverCellY * size + hoverCellX).set(n - 1, false);
           isRemoval = false;
         } else {
