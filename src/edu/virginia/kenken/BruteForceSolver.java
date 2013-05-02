@@ -47,7 +47,7 @@ public class BruteForceSolver extends Solver {
       statesChecked += 1;
 
       if (statesChecked % 65536 == 0) {
-        // getGUI().showProgress(attempt);
+        getGUI().showProgress(attempt);
       }
 
       // Get next permutations of rows and columns
