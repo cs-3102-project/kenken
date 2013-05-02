@@ -570,7 +570,7 @@ public class GUI {
           bf.solve();
           bf.stopTimer();
           bf.printElapsedTime();
-          Display.setTitle("KenKen -- Brute Force Solver took "
+          Display.setTitle("KenKen - Brute Force Solver took "
             + String.format("%.3f", bf.getElapsedTime() * 0.000000001)
             + " seconds");
           break;
@@ -581,7 +581,7 @@ public class GUI {
           dfs.solve();
           dfs.stopTimer();
           dfs.printElapsedTime();
-          Display.setTitle("KenKen -- DFS Solver took "
+          Display.setTitle("KenKen - DFS Solver took "
             + String.format("%.3f", dfs.getElapsedTime() * 0.000000001)
             + " seconds");
           break;
