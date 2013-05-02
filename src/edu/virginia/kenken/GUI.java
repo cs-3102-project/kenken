@@ -53,6 +53,14 @@ public class GUI {
   private static final int HELP_OFFSET_X = 19;
   private static final int HELP_OFFSET_Y = 11;
   private static final int HELP_FONT_SIZE = 20;
+  private static final String HELP_TEXT = "ESC:\n" + "F1:\n" + "F2:\n"
+    + "F3:\n" + "F4:\n" + "F5:\n" + "F6:\n" + "F7:\n" + "F8:\n" + "F9:\n"
+    + "F10:\n" + "F11:\n" + "F12:\n" + "OTHER:";
+  private static final String HELP_DESC = "EXIT\n" + "HELP\n" + "RESET\n"
+    + "NEW 3x3 PUZZLE\n" + "NEW 4x4 PUZZLE\n" + "NEW 5x5 PUZZLE\n"
+    + "NEW 6x6 PUZZLE\n" + "NEW 7x7 PUZZLE\n" + "NEW 8x8 PUZZLE\n"
+    + "NEW 9x9 PUZZLE\n" + "SOLVE (BRUTE FORCE)\n" + "SOLVE (DFS)\n"
+    + "ENABLE/DISABLE % CAGES\n" + "TOGGLE GUESS/NOTE MODE";
 
   private static final String FONT_PATH = "res/DroidSans.ttf";
 
@@ -104,11 +112,15 @@ public class GUI {
   // Whether or not to show help on the board
   private boolean showHelp;
 
+  // Whether or not problems with modulo cages can be generated
+  private boolean modEnabled;
+
   // Whether main loop should be running
   private boolean running;
 
   public GUI(int startupSize) {
     running = true;
+    modEnabled = false;
     init();
     setNewProblem(startupSize);
   }
@@ -225,7 +237,7 @@ public class GUI {
     this.size = size;
     cellWidth = BOARD_WIDTH / size;
 
-    problem = new Problem(size);
+    problem = new Problem(size, modEnabled);
     cageIDs = problem.getGrid();
     cellCages = problem.getCellCages();
 
@@ -390,24 +402,16 @@ public class GUI {
       // Modal overlay
       glColor3f(1.0f, 1.0f, 1.0f);
       glBegin(GL_QUADS);
-      glVertex2f(WINDOW_WIDTH * 0.1f, WINDOW_HEIGHT * 0.15f);
-      glVertex2f(WINDOW_WIDTH * 0.9f, WINDOW_HEIGHT * 0.15f);
-      glVertex2f(WINDOW_WIDTH * 0.9f, WINDOW_HEIGHT * 0.85f);
-      glVertex2f(WINDOW_WIDTH * 0.1f, WINDOW_HEIGHT * 0.85f);
+      glVertex2f(WINDOW_WIDTH * 0.1f, WINDOW_HEIGHT * 0.13f);
+      glVertex2f(WINDOW_WIDTH * 0.9f, WINDOW_HEIGHT * 0.13f);
+      glVertex2f(WINDOW_WIDTH * 0.9f, WINDOW_HEIGHT * 0.87f);
+      glVertex2f(WINDOW_WIDTH * 0.1f, WINDOW_HEIGHT * 0.87f);
       glEnd();
 
-      helpFont
-        .drawString(
-          HELP_OFFSET_X + WINDOW_WIDTH * 0.1f,
-          HELP_OFFSET_Y + WINDOW_HEIGHT * 0.15f,
-          "ESC:\nF1:\nF2:\nF3:\nF4:\nF5:\nF6:\nF7:\nF8:\nF9:\nF10:\nF11:\nOTHER:",
-          Color.black);
+      helpFont.drawString(HELP_OFFSET_X + WINDOW_WIDTH * 0.1f, HELP_OFFSET_Y
+        + WINDOW_HEIGHT * 0.13f, HELP_TEXT, Color.black);
       helpFont.drawString(HELP_OFFSET_X + WINDOW_WIDTH * 0.1f + 85,
-        HELP_OFFSET_Y + WINDOW_HEIGHT * 0.15f,
-        "EXIT\nHELP\nRESET\nNEW 3x3 PUZZLE\nNEW 4x4 PUZZLE\nNEW 5x5 PUZZLE\n"
-          + "NEW 6x6 PUZZLE\nNEW 7x7 PUZZLE\nNEW 8x8 PUZZLE\n"
-          + "NEW 9x9 PUZZLE\nSOLVE (BRUTE FORCE)\nSOLVE (DFS)\n"
-          + "TOGGLE GUESS/NOTE MODE", Color.black);
+        HELP_OFFSET_Y + WINDOW_HEIGHT * 0.13f, HELP_DESC, Color.black);
     } else {
       // Draw clue text
       for (Map.Entry<Integer, String> e : clueText.entrySet()) {
@@ -554,6 +558,10 @@ public class GUI {
           Display.setTitle("KenKen -- DFS Solver took "
             + String.format("%.3f", dfs.getElapsedTime() * 0.000000001)
             + " seconds");
+          break;
+        case Keyboard.KEY_F12:
+          modEnabled = !modEnabled;
+          setNewProblem(size);
           break;
         default:
           inGuessMode = !inGuessMode;

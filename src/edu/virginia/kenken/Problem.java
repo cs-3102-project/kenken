@@ -16,7 +16,7 @@ public class Problem {
   private final ArrayList<Cage> cellCages;
   private final Random rand;
 
-  public Problem(int size) {
+  public Problem(int size, boolean modEnabled) {
     this.size = size;
     grid = new HashMap<Integer, Integer>();
     numCages = 0;
@@ -227,20 +227,37 @@ public class Problem {
             operationCage = new AdditionCage(cage);
           } else if (opCutoff < 0.2) {
             operationCage = new MultiplicationCage(cage);
-          } else if (opCutoff < 0.5) {
-            operationCage = new SubtractionCage(cage);
           } else {
-            int smaller = cage.getCellElements().get(0);
-            int larger = cage.getCellElements().get(1);
-            if (larger < smaller) {
-              int temp = smaller;
-              smaller = larger;
-              larger = temp;
-            }
-            if (larger % smaller == 0 && opCutoff < 0.95) {
-              operationCage = new DivisionCage(cage);
+            if (modEnabled) {
+              if (opCutoff < 0.5) {
+                operationCage = new SubtractionCage(cage);
+              } else {
+                int smaller = cage.getCellElements().get(0);
+                int larger = cage.getCellElements().get(1);
+                if (larger < smaller) {
+                  int temp = smaller;
+                  smaller = larger;
+                  larger = temp;
+                }
+                if (larger % smaller == 0 && opCutoff < 0.95) {
+                  operationCage = new DivisionCage(cage);
+                } else {
+                  operationCage = new ModuloCage(cage);
+                }
+              }
             } else {
-              operationCage = new ModuloCage(cage);
+              int smaller = cage.getCellElements().get(0);
+              int larger = cage.getCellElements().get(1);
+              if (larger < smaller) {
+                int temp = smaller;
+                smaller = larger;
+                larger = temp;
+              }
+              if (larger % smaller == 0 && opCutoff < 0.95) {
+                operationCage = new DivisionCage(cage);
+              } else {
+                operationCage = new SubtractionCage(cage);
+              }
             }
           }
           break;
