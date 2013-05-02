@@ -7,6 +7,7 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
+import java.util.Stack;
 import java.util.TreeMap;
 
 import org.lwjgl.LWJGLException;
@@ -102,6 +103,12 @@ public class GUI {
   // Maps clue cells to clue text
   private TreeMap<Integer, String> clueText;
 
+  // Guess/note history
+  private Stack<Integer> numHistory;
+  private Stack<Boolean> toggleHistory;
+  private Stack<Integer> hoverXHistory;
+  private Stack<Integer> hoverYHistory;
+
   // Grid indices of the currently hovered cell
   private int hoverCellX;
   private int hoverCellY;
@@ -123,6 +130,9 @@ public class GUI {
 
   // Used for displaying time player took to solve puzzle
   private long startTime;
+
+  // Whether current guess/note entry is actually an undo action
+  private boolean isUndo;
 
   public GUI(int startupSize) {
     running = true;
@@ -234,6 +244,11 @@ public class GUI {
     }
 
     inGuessMode = true;
+    numHistory = new Stack<Integer>();
+    toggleHistory = new Stack<Boolean>();
+    hoverXHistory = new Stack<Integer>();
+    hoverYHistory = new Stack<Integer>();
+
     Display.setTitle("KenKen");
     startTime = System.nanoTime();
   }
@@ -322,24 +337,26 @@ public class GUI {
     }
 
     // Draw highlighted cell's background
-    if (hoverCellX >= 0 && hoverCellX < size && hoverCellY >= 0
-      && hoverCellY < size) {
-      // Highlight the new cell
-      if (inGuessMode) {
-        glColor3f(0.8f, 0.8f, 0.8f);
-      } else {
-        glColor3f(0.7f, 0.7f, 1.0f);
+    if (!isUndo) {
+      if (hoverCellX >= 0 && hoverCellX < size && hoverCellY >= 0
+        && hoverCellY < size) {
+        // Highlight the new cell
+        if (inGuessMode) {
+          glColor3f(0.8f, 0.8f, 0.8f);
+        } else {
+          glColor3f(0.7f, 0.7f, 1.0f);
+        }
+        glBegin(GL_QUADS);
+        glVertex2f(BOARD_OFFSET_X + hoverCellX * cellWidth, BOARD_OFFSET_Y
+          + hoverCellY * cellWidth);
+        glVertex2f(BOARD_OFFSET_X + (hoverCellX + 1) * cellWidth,
+          BOARD_OFFSET_Y + hoverCellY * cellWidth);
+        glVertex2f(BOARD_OFFSET_X + (hoverCellX + 1) * cellWidth,
+          BOARD_OFFSET_Y + (hoverCellY + 1) * cellWidth);
+        glVertex2f(BOARD_OFFSET_X + hoverCellX * cellWidth, BOARD_OFFSET_Y
+          + (hoverCellY + 1) * cellWidth);
+        glEnd();
       }
-      glBegin(GL_QUADS);
-      glVertex2f(BOARD_OFFSET_X + hoverCellX * cellWidth, BOARD_OFFSET_Y
-        + hoverCellY * cellWidth);
-      glVertex2f(BOARD_OFFSET_X + (hoverCellX + 1) * cellWidth, BOARD_OFFSET_Y
-        + hoverCellY * cellWidth);
-      glVertex2f(BOARD_OFFSET_X + (hoverCellX + 1) * cellWidth, BOARD_OFFSET_Y
-        + (hoverCellY + 1) * cellWidth);
-      glVertex2f(BOARD_OFFSET_X + hoverCellX * cellWidth, BOARD_OFFSET_Y
-        + (hoverCellY + 1) * cellWidth);
-      glEnd();
     }
 
     // Draw cell walls (note that when traversing the cageIDs in either the
@@ -470,45 +487,46 @@ public class GUI {
       if (Keyboard.getEventKeyState()) {
         continue;
       }
+      isUndo = false;
       switch (Keyboard.getEventKey()) {
         case Keyboard.KEY_ESCAPE:
           running = false;
           break;
         case Keyboard.KEY_1:
         case Keyboard.KEY_NUMPAD1:
-          markCell(1);
+          type(1);
           break;
         case Keyboard.KEY_2:
         case Keyboard.KEY_NUMPAD2:
-          markCell(2);
+          type(2);
           break;
         case Keyboard.KEY_3:
         case Keyboard.KEY_NUMPAD3:
-          markCell(3);
+          type(3);
           break;
         case Keyboard.KEY_4:
         case Keyboard.KEY_NUMPAD4:
-          markCell(4);
+          type(4);
           break;
         case Keyboard.KEY_5:
         case Keyboard.KEY_NUMPAD5:
-          markCell(5);
+          type(5);
           break;
         case Keyboard.KEY_6:
         case Keyboard.KEY_NUMPAD6:
-          markCell(6);
+          type(6);
           break;
         case Keyboard.KEY_7:
         case Keyboard.KEY_NUMPAD7:
-          markCell(7);
+          type(7);
           break;
         case Keyboard.KEY_8:
         case Keyboard.KEY_NUMPAD8:
-          markCell(8);
+          type(8);
           break;
         case Keyboard.KEY_9:
         case Keyboard.KEY_NUMPAD9:
-          markCell(9);
+          type(9);
           break;
         case Keyboard.KEY_F1:
           showHelp = !showHelp;
@@ -571,6 +589,15 @@ public class GUI {
           modEnabled = !modEnabled;
           setNewProblem(size);
           break;
+        case Keyboard.KEY_BACK:
+          isUndo = true;
+          if (toggleHistory.size() > 0) {
+            inGuessMode = toggleHistory.pop();
+            hoverCellX = hoverXHistory.pop();
+            hoverCellY = hoverYHistory.pop();
+            markCell(numHistory.pop());
+          }
+          break;
         default:
           inGuessMode = !inGuessMode;
           break;
@@ -580,14 +607,34 @@ public class GUI {
 
   private void markCell(int n) {
     boolean isRemoval;
-    if (hoverCellX >= 0 && hoverCellX < size && hoverCellY >= 0
-      && hoverCellY < size) {
+    if (boardHovered()) {
       if (inGuessMode) {
         // Mark guess
         if (guessGrid.get(hoverCellY * size + hoverCellX) == n) {
           guessGrid.put(hoverCellY * size + hoverCellX, -1);
           isRemoval = true;
         } else {
+          if (!isUndo && guessGrid.get(hoverCellY * size + hoverCellX) > 0) {
+            boolean tmp1;
+            int tmp2;
+
+            tmp1 = toggleHistory.pop();
+            toggleHistory.push(inGuessMode);
+            toggleHistory.push(tmp1);
+
+            tmp2 = numHistory.pop();
+            numHistory.push(guessGrid.get(hoverCellY * size + hoverCellX));
+            numHistory.push(tmp2);
+
+            tmp2 = hoverXHistory.pop();
+            hoverXHistory.push(hoverCellX);
+            hoverXHistory.push(tmp2);
+
+            tmp2 = hoverYHistory.pop();
+            hoverYHistory.push(hoverCellY);
+            hoverYHistory.push(tmp2);
+          }
+
           guessGrid.put(hoverCellY * size + hoverCellX, n);
 
           // Return if board contains solution
@@ -615,12 +662,32 @@ public class GUI {
         }
       } else {
         // Mark note
+        // TODO Decide what to do with this.. nice feature but breaks history
+        if (!isUndo && guessGrid.get(hoverCellY * size + hoverCellX) > 0) {
+          boolean tmp1;
+          int tmp2;
+
+          tmp1 = toggleHistory.pop();
+          toggleHistory.push(true);
+          toggleHistory.push(tmp1);
+
+          tmp2 = numHistory.pop();
+          numHistory.push(guessGrid.get(hoverCellY * size + hoverCellX));
+          numHistory.push(tmp2);
+
+          tmp2 = hoverXHistory.pop();
+          hoverXHistory.push(hoverCellX);
+          hoverXHistory.push(tmp2);
+
+          tmp2 = hoverYHistory.pop();
+          hoverYHistory.push(hoverCellY);
+          hoverYHistory.push(tmp2);
+        }
+        guessGrid.put(hoverCellY * size + hoverCellX, -1);
         if (noteGrid.get(hoverCellY * size + hoverCellX).get(n - 1)) {
-          guessGrid.put(hoverCellY * size + hoverCellX, -1);
           noteGrid.get(hoverCellY * size + hoverCellX).set(n - 1, false);
           isRemoval = false;
         } else {
-          guessGrid.put(hoverCellY * size + hoverCellX, -1);
           noteGrid.get(hoverCellY * size + hoverCellX).set(n - 1, true);
           isRemoval = true;
         }
@@ -741,6 +808,23 @@ public class GUI {
           incorrectCellCages.get(i / size).set(i % size, false);
         }
       }
+    }
+  }
+
+  private boolean boardHovered() {
+    return hoverCellX >= 0 && hoverCellX < size && hoverCellY >= 0
+      && hoverCellY < size;
+  }
+
+  private void type(int n) {
+    if (n <= size) {
+      numHistory.push(n);
+      hoverXHistory.push(hoverCellX);
+      hoverYHistory.push(hoverCellY);
+      toggleHistory.push(inGuessMode);
+      markCell(n);
+    } else {
+      inGuessMode = !inGuessMode;
     }
   }
 
