@@ -5,6 +5,7 @@ import java.util.HashMap;
 import java.util.HashSet;
 
 public class DepthFirstSolver extends Solver {
+  private final GUI gui;
   private final int size;
   private final ArrayList<Cage> cages;
   private boolean solutionFound;
@@ -15,6 +16,7 @@ public class DepthFirstSolver extends Solver {
   public DepthFirstSolver(GUI gui, Problem problem) {
     super(gui, problem);
 
+    this.gui = gui;
     size = problem.getSize();
     cages = problem.getCages();
     solutionFound = false;
@@ -22,19 +24,30 @@ public class DepthFirstSolver extends Solver {
   }
 
   public void solve() {
-
-    // Initialize grid of guesses to all empty
+    // Copy player's guesses and notes into root grid
     HashMap<Integer, HashSet<Integer>> root =
       new HashMap<Integer, HashSet<Integer>>();
+    HashSet<Integer> cellGuesses;
     for (int i = 0; i < size * size; ++i) {
-      root.put(i, new HashSet<Integer>());
-      // TODO Make this iterate upwards (currently set to iterate downwards to
-      // improve naive information gain, since large cell guesses typically fail
-      // faster)
-      for (int j = size; j > 0; --j) {
-        root.get(i).add(j);
+      cellGuesses = new HashSet<Integer>();
+
+      if (gui.getGuessGrid().get(i) > 0) {
+        cellGuesses.add(gui.getGuessGrid().get(i));
+      } else if (gui.getNoteGrid().get(i).contains(true)) {
+        for (int j = 0; j < size; ++j) {
+          if (gui.getNoteGrid().get(i).get(j)) {
+            cellGuesses.add(j + 1);
+          }
+        }
+      } else {
+        for (int j = 1; j <= size; ++j) {
+          cellGuesses.add(j);
+        }
       }
+
+      root.put(i, cellGuesses);
     }
+
     // Get easy stuff done first - mark all UnitCages and recurse through
     // their peers, marking them if possible too
     for (Cage c : cages) {

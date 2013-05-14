@@ -141,6 +141,14 @@ public class GUI {
     setNewProblem(startupSize);
   }
 
+  public HashMap<Integer, Integer> getGuessGrid() {
+    return guessGrid;
+  }
+
+  public HashMap<Integer, ArrayList<Boolean>> getNoteGrid() {
+    return noteGrid;
+  }
+
   /**
    * Initialize LWJGL and create the window.
    */
@@ -184,14 +192,6 @@ public class GUI {
     glLineWidth(LINE_WIDTH);
 
     try {
-      // Temporarily disable System.out
-      // System.setOut(new PrintStream(new OutputStream() {
-      // @Override
-      // public void write(int b) {
-      // // Do nothing
-      // }
-      // }));
-
       clueFont = new UnicodeFont(FONT_PATH, CLUE_FONT_SIZE, false, false);
       clueFont.addAsciiGlyphs();
       clueFont.addGlyphs(400, 600);
@@ -215,9 +215,6 @@ public class GUI {
       helpFont.addGlyphs(400, 600);
       helpFont.getEffects().add(new ColorEffect());
       helpFont.loadGlyphs();
-
-      // Re-enable System.out
-      // System.setOut(System.out);
 
     } catch (SlickException e) {
       System.out.println("Failed to create font. Exiting.");
