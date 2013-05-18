@@ -17,7 +17,6 @@ import org.lwjgl.opengl.Display;
 import org.lwjgl.opengl.DisplayMode;
 import org.lwjgl.opengl.GL11;
 import org.newdawn.slick.Color;
-import org.newdawn.slick.SlickException;
 import org.newdawn.slick.UnicodeFont;
 import org.newdawn.slick.font.effects.ColorEffect;
 
@@ -56,14 +55,12 @@ public class GUI {
   private static final int HELP_FONT_SIZE = 20;
   private static final String HELP_TEXT = "ESC:\n" + "F1:\n" + "F2:\n"
     + "F3:\n" + "F4:\n" + "F5:\n" + "F6:\n" + "F7:\n" + "F8:\n" + "F9:\n"
-    + "F10:\n" + "F11:\n" + "F12:\n" + "OTHER:";
+    + "F10:\n" + "F11:\n" + "F12:\n" + "BKSP:\n" + "OTHER:";
   private static final String HELP_DESC = "EXIT\n" + "HELP\n" + "RESET\n"
     + "NEW 3x3 PUZZLE\n" + "NEW 4x4 PUZZLE\n" + "NEW 5x5 PUZZLE\n"
     + "NEW 6x6 PUZZLE\n" + "NEW 7x7 PUZZLE\n" + "NEW 8x8 PUZZLE\n"
     + "NEW 9x9 PUZZLE\n" + "SOLVE (BRUTE FORCE)\n" + "SOLVE (DFS)\n"
-    + "ENABLE/DISABLE % CAGES\n" + "TOGGLE GUESS/NOTE MODE";
-
-  private static final String FONT_PATH = "res/DroidSans.ttf";
+    + "ENABLE/DISABLE % CAGES\n" + "UNDO\n" + "TOGGLE GUESS/NOTE MODE";
 
   // Current problem
   private Problem problem;
@@ -192,31 +189,27 @@ public class GUI {
     glLineWidth(LINE_WIDTH);
 
     try {
-      clueFont = new UnicodeFont(FONT_PATH, CLUE_FONT_SIZE, false, false);
+      clueFont = new UnicodeFont(Driver.fontPath, CLUE_FONT_SIZE, false, false);
       clueFont.addAsciiGlyphs();
-      clueFont.addGlyphs(400, 600);
       clueFont.getEffects().add(new ColorEffect());
       clueFont.loadGlyphs();
 
-      guessFont = new UnicodeFont(FONT_PATH, GUESS_FONT_SIZE, false, false);
+      guessFont =
+        new UnicodeFont(Driver.fontPath, GUESS_FONT_SIZE, false, false);
       guessFont.addAsciiGlyphs();
-      guessFont.addGlyphs(400, 600);
       guessFont.getEffects().add(new ColorEffect());
       guessFont.loadGlyphs();
 
-      noteFont = new UnicodeFont(FONT_PATH, NOTE_FONT_SIZE, false, false);
+      noteFont = new UnicodeFont(Driver.fontPath, NOTE_FONT_SIZE, false, false);
       noteFont.addAsciiGlyphs();
-      noteFont.addGlyphs(400, 600);
       noteFont.getEffects().add(new ColorEffect());
       noteFont.loadGlyphs();
 
-      helpFont = new UnicodeFont(FONT_PATH, HELP_FONT_SIZE, false, false);
+      helpFont = new UnicodeFont(Driver.fontPath, HELP_FONT_SIZE, false, false);
       helpFont.addAsciiGlyphs();
-      helpFont.addGlyphs(400, 600);
       helpFont.getEffects().add(new ColorEffect());
       helpFont.loadGlyphs();
-
-    } catch (SlickException e) {
+    } catch (Exception e) {
       System.out.println("Failed to create font. Exiting.");
       e.printStackTrace();
       System.exit(1);
@@ -279,7 +272,7 @@ public class GUI {
    * Constantly refresh the window.
    */
   public void gameLoop() {
-    while (!Display.isCloseRequested() && running) {
+    while (!Display.isCloseRequested() && running && Driver.running) {
       glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
       Display.sync(60);
       pollInput();
@@ -424,16 +417,16 @@ public class GUI {
       // Modal overlay
       glColor3f(1.0f, 1.0f, 1.0f);
       glBegin(GL_QUADS);
-      glVertex2f(WINDOW_WIDTH * 0.1f, WINDOW_HEIGHT * 0.13f);
-      glVertex2f(WINDOW_WIDTH * 0.9f, WINDOW_HEIGHT * 0.13f);
-      glVertex2f(WINDOW_WIDTH * 0.9f, WINDOW_HEIGHT * 0.87f);
-      glVertex2f(WINDOW_WIDTH * 0.1f, WINDOW_HEIGHT * 0.87f);
+      glVertex2f(WINDOW_WIDTH * 0.1f, WINDOW_HEIGHT * 0.10f);
+      glVertex2f(WINDOW_WIDTH * 0.9f, WINDOW_HEIGHT * 0.10f);
+      glVertex2f(WINDOW_WIDTH * 0.9f, WINDOW_HEIGHT * 0.90f);
+      glVertex2f(WINDOW_WIDTH * 0.1f, WINDOW_HEIGHT * 0.90f);
       glEnd();
 
       helpFont.drawString(HELP_OFFSET_X + WINDOW_WIDTH * 0.1f, HELP_OFFSET_Y
-        + WINDOW_HEIGHT * 0.13f, HELP_TEXT, Color.black);
+        + WINDOW_HEIGHT * 0.10f, HELP_TEXT, Color.black);
       helpFont.drawString(HELP_OFFSET_X + WINDOW_WIDTH * 0.1f + 85,
-        HELP_OFFSET_Y + WINDOW_HEIGHT * 0.13f, HELP_DESC, Color.black);
+        HELP_OFFSET_Y + WINDOW_HEIGHT * 0.10f, HELP_DESC, Color.black);
     } else {
       // Draw clue text
       for (Map.Entry<Integer, String> e : clueText.entrySet()) {
